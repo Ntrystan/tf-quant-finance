@@ -198,7 +198,7 @@ class ItoProcess(object):
       raise NotImplementedError(
           'In order to use Euler scheme, both drift_fn and volatility_fn '
           'should be provided.')
-    default_name = self.name() + '_sample_paths'
+    default_name = f'{self.name()}_sample_paths'
     with tf.compat.v1.name_scope(
         name, default_name=default_name, values=[times, initial_state]):
       if initial_state is None:

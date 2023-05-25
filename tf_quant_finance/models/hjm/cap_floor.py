@@ -218,12 +218,13 @@ def cap_floor_price(
         skip=skip,
         time_step=time_step,
         dtype=dtype,
-        name=name + '_bond_option')
+        name=f'{name}_bond_option',
+    )
 
     caplet_prices = tf.where(
         expiries < 0.0, tf.zeros_like(expiries), caplet_prices)
 
-    cap_prices = tf.math.reduce_sum(
+    return tf.math.reduce_sum(
         notional * (1.0 + daycount_fractions * strikes) * caplet_prices,
-        axis=-1)
-    return cap_prices
+        axis=-1,
+    )

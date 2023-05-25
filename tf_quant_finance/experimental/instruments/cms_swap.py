@@ -151,7 +151,7 @@ class CMSCashflowStream(cs.CashflowStream):
       contract based on the input market data.
     """
 
-    name = name or (self._name + '_price')
+    name = name or f'{self._name}_price'
     with tf.name_scope(name):
       valuation_date = dates.convert_to_date_tensor(valuation_date)
       discount_curve = market.discount_curve
@@ -370,8 +370,7 @@ class CMSCashflowStream(cs.CashflowStream):
     with tf.GradientTape() as g:
       g.watch(s)
       fx = self._f_atm(s, cms_rates)
-    dfx = tf.squeeze(g.gradient(fx, s))
-    return dfx
+    return tf.squeeze(g.gradient(fx, s))
 
   def _f_atm_second_derivative(self, s, cms_rates):
     """Computes second order derivative of _f_atm."""
@@ -381,8 +380,7 @@ class CMSCashflowStream(cs.CashflowStream):
         gg.watch(s)
         fx = self._f_atm(s, cms_rates)
       dfx = tf.squeeze(gg.gradient(fx, s))
-    d2fx = tf.squeeze(g.gradient(dfx, s))
-    return d2fx
+    return tf.squeeze(g.gradient(dfx, s))
 
 
 class CMSSwap(irs.InterestRateSwap):
@@ -566,7 +564,7 @@ class CMSSwap(irs.InterestRateSwap):
     floors. WILMOTT magazine.
     """
 
-    name = name or (self._name + '_price')
+    name = name or f'{self._name}_price'
     with tf.name_scope(name):
       return super(CMSSwap, self).price(valuation_date, market, model,
                                         pricing_context, name)

@@ -213,7 +213,7 @@ def sample(dim: int,
   dtype = dtype or tf.float32
 
   with tf.compat.v1.name_scope(
-      name, 'halton_sample', values=[num_results, sequence_indices]):
+        name, 'halton_sample', values=[num_results, sequence_indices]):
     # Here and in the following, the shape layout is as follows:
     # [sample dimension, event dimension, coefficient dimension].
     # The coefficient dimension is an intermediate axes which will hold the
@@ -231,24 +231,25 @@ def sample(dim: int,
 
     runtime_assertions = []
     if validate_args:
-      runtime_assertions.append(
+      runtime_assertions.extend((
           tf.compat.v1.assert_less_equal(
               tf.reduce_max(indices),
               tf.constant(_MAX_INDEX_BY_DTYPE[dtype], dtype=dtype),
               message=(
                   'Maximum sequence index exceeded. Maximum index for dtype %s '
-                  'is %d.' % (dtype, _MAX_INDEX_BY_DTYPE[dtype]))))
-      runtime_assertions.append(
+                  'is %d.' % (dtype, _MAX_INDEX_BY_DTYPE[dtype])),
+          ),
           tf.compat.v1.assert_greater_equal(
-              dim, 1, message='`dim` should be greater than 1'))
-      runtime_assertions.append(
+              dim, 1, message='`dim` should be greater than 1'),
           tf.compat.v1.assert_less_equal(
-              dim, _MAX_DIMENSION,
-              message='`dim` should be less or equal than %d' % _MAX_DIMENSION))
-
+              dim,
+              _MAX_DIMENSION,
+              message='`dim` should be less or equal than %d' % _MAX_DIMENSION,
+          ),
+      ))
     with tf.compat.v1.control_dependencies(runtime_assertions):
       radixes = tf.convert_to_tensor(_PRIMES, dtype=dtype, name='radixes')
-      radixes = tf.reshape(radixes[0:dim], shape=[dim, 1])
+      radixes = tf.reshape(radixes[:dim], shape=[dim, 1])
 
       max_sizes_by_axes = tf.convert_to_tensor(
           _MAX_SIZES_BY_AXES[dtype],

@@ -241,12 +241,15 @@ def _analytic_valuation(discount_rate_fn, model, strikes, expiries, maturities,
       is_call_options,
       tf.math.maximum(forward_bond_price - strikes, 0),
       tf.math.maximum(strikes - forward_bond_price, 0))
-  option_value = tf.where(
-      maturities < expiries, tf.zeros_like(maturities),
-      tf.where(sqrt_variance > 0.0,
-               tf.where(is_call_options, option_value_call, option_value_put),
-               intrinsic_value))
-  return option_value
+  return tf.where(
+      maturities < expiries,
+      tf.zeros_like(maturities),
+      tf.where(
+          sqrt_variance > 0.0,
+          tf.where(is_call_options, option_value_call, option_value_put),
+          intrinsic_value,
+      ),
+  )
 
 
 # TODO(b/158501671): Clean-up this implementation.

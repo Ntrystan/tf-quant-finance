@@ -248,10 +248,7 @@ class DouglasAdiSchemeTest(tf.test.TestCase):
 def _np_shift(values, axis, delta):
   values = np.roll(values, delta, axis)
   sl = [slice(None)] * values.ndim
-  if delta > 0:
-    sl[axis] = slice(None, delta)
-  else:
-    sl[axis] = slice(delta, None)
+  sl[axis] = slice(None, delta) if delta > 0 else slice(delta, None)
   values[tuple(sl)] = 0
   return values
 

@@ -48,8 +48,7 @@ class VarianceSwapsTest(parameterized.TestCase, tf.test.TestCase):
     # Literal calculation of (A 7/8) for all weights. The library uses
     # first differences rather than cumsums for efficiency due to algebra.
     expected_weights = []
-    for v in slope_values:
-      expected_weights.append(v - np.sum(expected_weights))
+    expected_weights.extend(v - np.sum(expected_weights) for v in slope_values)
     weights = self.evaluate(
         variance_swaps.replicating_weights(
             strikes, reference_strikes, expiries, dtype=tf.float64))

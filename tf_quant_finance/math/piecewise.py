@@ -166,7 +166,7 @@ class PiecewiseConstantFunc(object):
       `batch_shape + [num_points] + event_shape` containing values of the
       piecewise constant function.
     """
-    name = name or self._name  + '_call'
+    name = name or f'{self._name}_call'
     with tf.name_scope(name):
       x = tf.convert_to_tensor(x, dtype=self.dtype(), name='x')
       batch_shape = tf.shape(self._jump_locations)[:-1]
@@ -195,7 +195,7 @@ class PiecewiseConstantFunc(object):
       `batch_shape + [num_points] + event_shape` containing values of the
       integral of the piecewise constant function between `[x1, x2]`.
     """
-    name = name or self._name + '_integrate'
+    name = name or f'{self._name}_integrate'
     with tf.name_scope(name):
       x1 = tf.convert_to_tensor(x1, dtype=self.dtype(),
                                 name='x1')
@@ -305,10 +305,7 @@ def _piecewise_constant_function(x, jump_locations, values,
     values = tf.expand_dims(values, 0)
   indices = tf.searchsorted(jump_locations, x, side=side)
   res = tf.gather(values, indices, axis=batch_rank, batch_dims=batch_rank)
-  if no_batch_shape:
-    return tf.squeeze(res, 0)
-  else:
-    return res
+  return tf.squeeze(res, 0) if no_batch_shape else res
 
 
 def _piecewise_constant_integrate(x1, x2, jump_locations, values, batch_rank):
@@ -363,10 +360,7 @@ def _piecewise_constant_integrate(x1, x2, jump_locations, values, batch_rank):
   res = ((jump_location1 - x1) * value1
          + (x2 - jump_location2) * value2
          + integrals2 - integrals1)
-  if no_batch_shape:
-    return tf.squeeze(res, 0)
-  else:
-    return res
+  return tf.squeeze(res, 0) if no_batch_shape else res
 
 
 def _get_indices_and_values(x, jump_locations, values, side,

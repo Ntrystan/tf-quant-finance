@@ -387,12 +387,12 @@ class DateTensor(tensor_wrapper.TensorWrapper):
     return self._ordinals <= other.ordinal()
 
   def __repr__(self):
-    output = "DateTensor: shape={}".format(self.shape)
+    output = f"DateTensor: shape={self.shape}"
     if tf.executing_eagerly():
       contents_np = np.stack(
           (self._years.numpy(), self._months.numpy(), self._days.numpy()),
           axis=-1)
-      return output + ", contents={}".format(repr(contents_np))
+      return f"{output}, contents={repr(contents_np)}"
     return output
 
   @classmethod
@@ -593,20 +593,20 @@ def from_year_month_day(year, month, day, validate=True):
 
   control_deps = []
   if validate:
-    control_deps.append(
-        tf.debugging.assert_positive(year, message="Year must be positive."))
-    control_deps.append(
+    control_deps.extend((
+        tf.debugging.assert_positive(year, message="Year must be positive."),
         tf.debugging.assert_greater_equal(
             month,
             constants.Month.JANUARY.value,
-            message=f"Month must be >= {constants.Month.JANUARY.value}"))
-    control_deps.append(
+            message=f"Month must be >= {constants.Month.JANUARY.value}",
+        ),
         tf.debugging.assert_less_equal(
             month,
             constants.Month.DECEMBER.value,
-            message="Month must be <= {constants.Month.JANUARY.value}"))
-    control_deps.append(
-        tf.debugging.assert_positive(day, message="Day must be positive."))
+            message="Month must be <= {constants.Month.JANUARY.value}",
+        ),
+        tf.debugging.assert_positive(day, message="Day must be positive."),
+    ))
     is_leap = date_utils.is_leap_year(year)
     days_in_months = tf.constant(_DAYS_IN_MONTHS_COMBINED, tf.int32)
     max_days = tf.gather(days_in_months,

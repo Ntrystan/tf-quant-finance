@@ -81,10 +81,7 @@ class EulerSamplingTest(tf.test.TestCase, parameterized.TestCase):
 
     times = np.array([0.1, 0.2, 0.3])
     num_samples = 10000
-    if watch_params:
-      watch_params = []
-    else:
-      watch_params = None
+    watch_params = [] if watch_params else None
     if use_time_step:
       time_step = 0.01
       num_time_steps = None
@@ -250,11 +247,7 @@ class EulerSamplingTest(tf.test.TestCase, parameterized.TestCase):
     else:
       normal_draws = None
 
-    if use_batch:
-      # x0.shape = [2, 1, 1]
-      x0 = np.array([[[0.1]], [[0.1]]])
-    else:
-      x0 = np.array([0.1])
+    x0 = np.array([[[0.1]], [[0.1]]]) if use_batch else np.array([0.1])
     paths = self.evaluate(
         euler_sampling.sample(
             dim=1,
@@ -393,10 +386,8 @@ class EulerSamplingTest(tf.test.TestCase, parameterized.TestCase):
       def vol_fn(t, x):
         del x
         return (a * t + b) * tf.ones([2, 2], dtype=t.dtype)
-      if watch_params:
-        watch_params_tf = [a, b]
-      else:
-        watch_params_tf = None
+
+      watch_params_tf = [a, b] if watch_params else None
       return euler_sampling.sample(
           dim=2,
           drift_fn=drift_fn, volatility_fn=vol_fn,

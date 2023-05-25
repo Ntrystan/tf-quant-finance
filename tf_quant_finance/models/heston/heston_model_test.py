@@ -266,7 +266,7 @@ class HestonModelTest(parameterized.TestCase, tf.test.TestCase):
         values_grid=final_value_grid,
         time_step=time_step,
         discounting=lambda *args: discounting)[0]
-    pde_price = value_grid[int(grid_size_s / 2), int(grid_size_v / 2)]
+    pde_price = value_grid[grid_size_s // 2, grid_size_v // 2]
 
     self.assertAllClose(monte_carlo_price, pde_price, atol=0.1, rtol=0.1)
 

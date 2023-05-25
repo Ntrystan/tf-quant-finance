@@ -293,12 +293,13 @@ class GaussianHJM(quasi_gaussian_hjm.QuasiGaussianHJM):
         (a) If `times` has rank different from `1`.
         (b) If Euler scheme is used by times is not supplied.
     """
-    name = name or self._name + '_sample_path'
+    name = name or f'{self._name}_sample_path'
     with tf.name_scope(name):
       times = tf.convert_to_tensor(times, self._dtype)
       if times.shape.rank != 1:
-        raise ValueError('`times` should be a rank 1 Tensor. '
-                         'Rank is {} instead.'.format(times.shape.rank))
+        raise ValueError(
+            f'`times` should be a rank 1 Tensor. Rank is {times.shape.rank} instead.'
+        )
       return self._sample_paths(times, time_step, num_time_steps, num_samples,
                                 random_type, skip, seed)
 
@@ -381,7 +382,7 @@ class GaussianHJM(quasi_gaussian_hjm.QuasiGaussianHJM):
       A `Tensor` of real dtype and the same shape as `(num_times,)`
       containing the price of zero-coupon bonds.
     """
-    name = name or self._name + '_discount_bond_prices'
+    name = name or f'{self._name}_discount_bond_prices'
     with tf.name_scope(name):
       x_t = tf.convert_to_tensor(state, self._dtype)
       times = tf.convert_to_tensor(times, self._dtype)

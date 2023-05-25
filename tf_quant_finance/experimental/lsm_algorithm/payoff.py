@@ -39,10 +39,10 @@ def make_basket_put_payoff(strike_price, dtype=None, name=None):
   """
   strike_price = tf.convert_to_tensor(strike_price, dtype=dtype,
                                       name="strike_price")
-  put_valuer = functools.partial(_put_valuer, strike_price=strike_price,
-                                 dtype=dtype, name=name)
-
-  return put_valuer
+  return functools.partial(_put_valuer,
+                           strike_price=strike_price,
+                           dtype=dtype,
+                           name=name)
 
 
 def _put_valuer(sample_paths, time_index, strike_price, dtype=None, name=None):

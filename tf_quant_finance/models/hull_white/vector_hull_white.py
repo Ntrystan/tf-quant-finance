@@ -403,15 +403,16 @@ class VectorHullWhiteModel(generic_ito_process.GenericItoProcess):
         mismatched.
     """
     # Note: all the notations below are the same as in [2].
-    name = name or self._name + '_sample_path'
+    name = name or f'{self._name}_sample_path'
     with tf.name_scope(name):
       times = tf.convert_to_tensor(times, self._dtype, name='times')
       if times_grid is not None:
         times_grid = tf.convert_to_tensor(times_grid, self._dtype,
                                           name='times_grid')
       if len(times.shape) != 1:
-        raise ValueError('`times` should be a rank 1 Tensor. '
-                         'Rank is {} instead.'.format(len(times.shape)))
+        raise ValueError(
+            f'`times` should be a rank 1 Tensor. Rank is {len(times.shape)} instead.'
+        )
       if self._sample_with_generic:
         if time_step is None and times_grid is None:
           raise ValueError(
@@ -544,7 +545,7 @@ class VectorHullWhiteModel(generic_ito_process.GenericItoProcess):
     if not self._is_piecewise_constant:
       raise ValueError('All paramaters `mean_reversion`, `volatility`, and '
                        '`corr_matrix`must be piecewise constant functions.')
-    name = name or self._name + '_sample_discount_curve_paths'
+    name = name or f'{self._name}_sample_discount_curve_paths'
     with tf.name_scope(name):
       times = tf.convert_to_tensor(times, self._dtype, name='times')
       curve_times = tf.convert_to_tensor(curve_times, self._dtype,
@@ -613,7 +614,7 @@ class VectorHullWhiteModel(generic_ito_process.GenericItoProcess):
       A `Tensor` of real dtype and the same shape as `batch_shape + [dim]`
       containing the price of zero-coupon bonds.
     """
-    name = name or self._name + '_discount_bond_prices'
+    name = name or f'{self._name}_discount_bond_prices'
     with tf.name_scope(name):
       short_rate = tf.convert_to_tensor(short_rate, self._dtype)
       times = tf.convert_to_tensor(times, self._dtype)
@@ -630,9 +631,8 @@ class VectorHullWhiteModel(generic_ito_process.GenericItoProcess):
       mean_reversion = tf.reshape(tf.transpose(mean_reversion),
                                   input_shape_times + [self._dim])
       y_t = tf.reshape(tf.transpose(y_t), input_shape_times + [self._dim])
-      values = self._bond_reconstitution(
-          times, maturities, mean_reversion, short_rate, y_t)
-      return values
+      return self._bond_reconstitution(times, maturities, mean_reversion,
+                                       short_rate, y_t)
 
   def instant_forward_rate(self, t: types.RealTensor) -> types.RealTensor:
     """Returns the instantaneous forward rate."""
@@ -652,7 +652,7 @@ class VectorHullWhiteModel(generic_ito_process.GenericItoProcess):
     num_requested_times = tff_utils.get_shape(times)[0]
     params = [self._mean_reversion, self._volatility]
     if self._corr_matrix is not None:
-      params = params + [self._corr_matrix]
+      params += [self._corr_matrix]
     times, keep_mask = _prepare_grid(
         times, times_grid, *params)
     # Add zeros as a starting location
@@ -735,6 +735,7 @@ class VectorHullWhiteModel(generic_ito_process.GenericItoProcess):
       del args
       return tf.math.logical_and(i < tf.size(dt),
                                  written_count < num_requested_times)
+
     def body_fn(i, written_count, current_x, rate_paths):
       """Simulate hull-white process to the next time point."""
       if normal_draws is None:
@@ -808,10 +809,7 @@ class VectorHullWhiteModel(generic_ito_process.GenericItoProcess):
     # Shape `x_t.shape`
     term1 = x_t * g_t_tau
     term2 = y_t * g_t_tau**2
-    # Shape `short_rate.shape`
-    p_t_tau = p_0_t_tau * tf.math.exp(-term1 - 0.5 * term2)
-    # Shape `short_rate.shape`
-    return p_t_tau
+    return p_0_t_tau * tf.math.exp(-term1 - 0.5 * term2)
 
   def _exact_discretization_setup(self, dim):
     """Initial setup for efficient computations."""
@@ -1036,27 +1034,23 @@ def _input_type(param, dim, dtype, name):
   # generic sampling method (e.g., Euler).
   sample_with_generic = False
   is_piecewise_constant = True
-  if hasattr(param, 'is_piecewise_constant'):
-    if param.is_piecewise_constant:
-      jump_locations = param.jump_locations()
-      jumps_shape = jump_locations.shape
-      if jumps_shape.rank > 2:
+  if hasattr(param, 'is_piecewise_constant') and param.is_piecewise_constant:
+    jump_locations = param.jump_locations()
+    jumps_shape = jump_locations.shape
+    if jumps_shape.rank > 2:
+      raise ValueError(
+          f'Batch rank of `jump_locations` should be `1` for all piecewise constant arguments but {len(jumps_shape[:-1])} instead'
+      )
+    if jumps_shape.rank == 2:
+      if dim != jumps_shape[0]:
         raise ValueError(
-            'Batch rank of `jump_locations` should be `1` for all piecewise '
-            'constant arguments but {} instead'.format(len(jumps_shape[:-1])))
-      if jumps_shape.rank == 2:
-        if dim != jumps_shape[0]:
-          raise ValueError(
-              'Batch shape of `jump_locations` should be either empty or '
-              '`[{0}]` but `[{1}]` instead'.format(dim, jumps_shape[0]))
-      if name == 'mean_reversion' and jumps_shape[0] > 0:
-        # Exact discretization currently not supported with time-dependent mr
-        sample_with_generic = True
-      return param, sample_with_generic, is_piecewise_constant
-    else:
-      is_piecewise_constant = False
+            'Batch shape of `jump_locations` should be either empty or '
+            '`[{0}]` but `[{1}]` instead'.format(dim, jumps_shape[0]))
+    if name == 'mean_reversion' and jumps_shape[0] > 0:
+      # Exact discretization currently not supported with time-dependent mr
       sample_with_generic = True
-  elif callable(param):
+    return param, sample_with_generic, is_piecewise_constant
+  elif hasattr(param, 'is_piecewise_constant') or callable(param):
     is_piecewise_constant = False
     sample_with_generic = True
   else:
@@ -1069,8 +1063,8 @@ def _input_type(param, dim, dtype, name):
       if param_shape[-1] != dim:
         # This is an error, we need as many parameters as the number of `dim`
         raise ValueError(
-            'Length of {} ({}) should be the same as `dims`({}).'.format(
-                name, param_shape[0], dim))
+            f'Length of {name} ({param_shape[0]}) should be the same as `dims`({dim}).'
+        )
     else:
       # Broadcast scalar to shape [1]
       param = param[tf.newaxis]

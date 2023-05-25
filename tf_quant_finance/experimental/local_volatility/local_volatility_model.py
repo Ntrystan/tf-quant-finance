@@ -509,7 +509,7 @@ class LocalVolatilityModel(generic_ito_process.GenericItoProcess):
       ValueError: If `precompute_iv` is True, but `time_step`, `num_time_steps`
         or `times_grid` are given.
     """
-    name = name or (self._name + '_log_sample_path')
+    name = name or f'{self._name}_log_sample_path'
     with tf.name_scope(name):
       if initial_state is not None:
         initial_state = tf.math.log(

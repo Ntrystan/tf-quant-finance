@@ -175,6 +175,7 @@ def interpolate(x: types.RealTensor,
                                     axis=-1)
         else:
           return tf.gather(x, encoding, axis=-1, batch_dims=x.shape.rank - 1)
+
       x_data_lower = get_slice(x_data, lower_encoding)
       x_data_upper = get_slice(x_data, upper_encoding)
       y_data_lower = get_slice(y_data, lower_encoding)
@@ -190,7 +191,4 @@ def interpolate(x: types.RealTensor,
 
       interpolated = tf.where(at_min, values_min, interpolated)
       interpolated = tf.where(at_max, values_max, interpolated)
-      if batch_rank > 0:
-        return interpolated
-      else:
-        return tf.squeeze(interpolated, 0)
+      return interpolated if batch_rank > 0 else tf.squeeze(interpolated, 0)

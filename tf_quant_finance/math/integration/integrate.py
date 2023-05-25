@@ -77,10 +77,10 @@ def integrate(
   Raises: ValueError if `method` was not recognized.
   """
   with tf.compat.v1.name_scope(
-      name, default_name='integrate', values=[lower, upper]):
+        name, default_name='integrate', values=[lower, upper]):
     if method == IntegrationMethod.COMPOSITE_SIMPSONS_RULE:
       return simpson(func, lower, upper, dtype=dtype, **kwargs)
     elif method == IntegrationMethod.GAUSS_LEGENDRE:
       return gauss_legendre(func, lower, upper, dtype=dtype, **kwargs)
     else:
-      raise ValueError('Unknown method: %s.' % method)
+      raise ValueError(f'Unknown method: {method}.')

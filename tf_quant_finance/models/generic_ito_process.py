@@ -294,7 +294,7 @@ class GenericItoProcess(ito_process.ItoProcess):
       tf.errors.InvalidArgumentError: If `normal_draws` is supplied and
         `num_time_steps` is mismatched.
     """
-    name = name or (self._name + '_sample_path')
+    name = name or f'{self._name}_sample_path'
     with tf.name_scope(name):
       return euler_sampling.sample(
           dim=self._dim,
@@ -872,9 +872,7 @@ def _backward_pde_coeffs(drift_fn, volatility_fn, discounting,
   def zeroth_order_coeff_fn(t, coord_grid):
     coord_grid = _broadcast_batch_shape(_coord_grid_to_mesh_grid(coord_grid),
                                         batch_shape, dim)
-    if not discounting:
-      return None
-    return -discounting(t, coord_grid)
+    return None if not discounting else -discounting(t, coord_grid)
 
   return second_order_coeff_fn, first_order_coeff_fn, zeroth_order_coeff_fn
 
@@ -898,6 +896,5 @@ def _broadcast_batch_shape(x, batch_shape, dim):
   x_shape_no_batch = _get_static_shape(x)[-dim - 1:]
   if isinstance(x_shape_no_batch, list) and isinstance(batch_shape, list):
     return tf.broadcast_to(x, batch_shape + x_shape_no_batch)
-  else:
-    output_shape = tf.concat([batch_shape, x_shape_no_batch], axis=0)
-    return tf.broadcast_to(x, output_shape)
+  output_shape = tf.concat([batch_shape, x_shape_no_batch], axis=0)
+  return tf.broadcast_to(x, output_shape)

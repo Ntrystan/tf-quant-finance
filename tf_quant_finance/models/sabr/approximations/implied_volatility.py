@@ -218,8 +218,7 @@ def implied_volatility(*,
 
 def _epsilon(dtype):
   dtype = tf.as_dtype(dtype).as_numpy_dtype
-  eps = 1e-6 if dtype == tf.float32.as_numpy_dtype else 1e-10
-  return eps
+  return 1e-6 if dtype == tf.float32.as_numpy_dtype else 1e-10
 
 
 def _zeta_by_xhat(zeta, rho, dtype):

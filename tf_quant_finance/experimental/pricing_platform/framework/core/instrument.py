@@ -61,7 +61,7 @@ class Instrument(abc.ABC):
       arguments for the Instrument.
     """
     del proto_list, kwargs
-    return dict()
+    return {}
 
   @classmethod
   def group_protos(

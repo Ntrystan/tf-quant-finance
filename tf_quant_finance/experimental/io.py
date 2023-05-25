@@ -166,11 +166,10 @@ class ArrayDictReader():
     example = tf.train.Example()
     example.ParseFromString(raw_data)
     feature = example.features.feature
-    output = {
+    return {
         key: decode_array(value.bytes_list.value[0])
         for key, value in feature.items()
     }
-    return output
 
   def next(self):
     """Returns the next record if there is one or raises `StopIteration`."""

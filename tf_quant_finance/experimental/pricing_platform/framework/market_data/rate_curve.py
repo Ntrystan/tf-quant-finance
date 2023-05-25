@@ -135,10 +135,11 @@ class RateCurve(pmd.RateCurve):
   @property
   def discount_rate_nodes(self) -> types.FloatTensor:
     """Discount rates at the interpolation nodes."""
-    discount_rates = tf.math.divide_no_nan(
-        -tf.math.log(self.discount_factor_nodes), self._times,
-        name="discount_rate_nodes")
-    return discount_rates
+    return tf.math.divide_no_nan(
+        -tf.math.log(self.discount_factor_nodes),
+        self._times,
+        name="discount_rate_nodes",
+    )
 
   def set_discount_factor_nodes(self, values: types.FloatTensor):
     """Update discount factors at the interpolation nodes with new values."""

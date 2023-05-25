@@ -210,23 +210,18 @@ def _default_vol_data(dimension, dtype):
 
 def _ensure_matrix(volatility, dim, dtype):
   """Converts a volatility tensor to the right shape."""
-  # Works only for static rank.
-  rank = len(volatility.shape)
-  if not rank:
+  if rank := len(volatility.shape):
+    return tf.linalg.tensor_diag(volatility) if rank == 1 else volatility
+  else:
     return tf.eye(dim, dtype=dtype) * volatility
-  if rank == 1:
-    return tf.linalg.tensor_diag(volatility)
-  # It is of rank 2 at least
-  return volatility
 
 
 def _covar_from_vol(volatility, dim, dtype):
-  rank = len(volatility.shape)
-  if not rank:
+  if rank := len(volatility.shape):
+    return (tf.linalg.tensor_diag(volatility * volatility) if rank == 1 else
+            tf.linalg.matmul(volatility, volatility, transpose_b=True))
+  else:
     return volatility * volatility * tf.eye(dim, dtype=dtype)
-  if rank == 1:
-    return tf.linalg.tensor_diag(volatility * volatility)
-  return tf.linalg.matmul(volatility, volatility, transpose_b=True)
 
 
 def _construct_vol_data_const_vol(volatility, total_covariance_fn, dim, dtype):

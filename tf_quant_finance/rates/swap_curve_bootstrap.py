@@ -570,13 +570,10 @@ def _build_swap_curve(float_leg_start_times, float_leg_end_times,
 def _convert_to_tensors(dtype, input_array, name):
   """Converts the supplied list to a tensor."""
 
-  output_tensor = [
-      tf.convert_to_tensor(
-          x, dtype=dtype, name=name + '_{}'.format(i))
+  return [
+      tf.convert_to_tensor(x, dtype=dtype, name=f'{name}_{i}')
       for i, x in enumerate(input_array)
   ]
-
-  return output_tensor
 
 
 @utils.dataclass
@@ -675,7 +672,7 @@ def _create_curve_building_tensors(float_leg_start_times,
         tf.fill(tf.shape(float_leg_start_times[i][:-1]), i))
     calc_groups_fixed.append(tf.fill(tf.shape(fixed_leg_end_times[i][:-1]), i))
 
-  output = CurveFittingVars(
+  return CurveFittingVars(
       float_leg_daycount=tf.concat(calc_float_leg_daycount, axis=0),
       float_leg_times_start=tf.concat(float_leg_calc_times_start, axis=0),
       float_leg_times_end=tf.concat(float_leg_calc_times_end, axis=0),
@@ -692,7 +689,5 @@ def _create_curve_building_tensors(float_leg_start_times,
       last_float_leg_daycount=tf.stack(last_float_leg_daycount, axis=0),
       last_fixed_leg_calc_time=tf.stack(last_fixed_leg_end_time, axis=0),
       last_fixed_leg_daycount=tf.stack(last_fixed_leg_daycount, axis=0),
-      last_fixed_leg_cashflows=tf.stack(last_fixed_leg_cashflows, axis=0)
-      )
-
-  return output
+      last_fixed_leg_cashflows=tf.stack(last_fixed_leg_cashflows, axis=0),
+  )

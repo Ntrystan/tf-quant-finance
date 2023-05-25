@@ -488,9 +488,7 @@ def _initial_discount_rates(bond_cashflows,
                             name='initial_discount_rates'):
   """Constructs a guess for the initial rates as the yields to maturity."""
   n = len(bond_cashflows)
-  groups = []
-  for i in range(n):
-    groups.append(tf.fill(tf.shape(bond_cashflows[i]), i))
+  groups = [tf.fill(tf.shape(bond_cashflows[i]), i) for i in range(n)]
   bond_cashflows = tf.concat(bond_cashflows, axis=0)
   bond_cashflow_times = tf.concat(bond_cashflow_times, axis=0)
   groups = tf.concat(groups, axis=0)
@@ -507,29 +505,23 @@ def _perform_static_validation(bond_cashflows, bond_cashflow_times,
   """Performs static validation on the arguments."""
   if len(bond_cashflows) != len(bond_cashflow_times):
     raise ValueError(
-        'Cashflow times and bond_cashflows must be of the same length.'
-        'bond_cashflows are of size'
-        ' {} and times of size {}'.format(
-            len(bond_cashflows), len(bond_cashflow_times)))
+        f'Cashflow times and bond_cashflows must be of the same length.bond_cashflows are of size {len(bond_cashflows)} and times of size {len(bond_cashflow_times)}'
+    )
 
   if len(bond_cashflows) != len(present_values):
     raise ValueError(
-        'Present values and bond_cashflows must be of the same length.'
-        'bond_cashflows are of size'
-        ' {} and PVs of size {}'.format(
-            len(bond_cashflows), len(present_values)))
+        f'Present values and bond_cashflows must be of the same length.bond_cashflows are of size {len(bond_cashflows)} and PVs of size {len(present_values)}'
+    )
 
   if len(present_values) != len(pv_settle_times):
     raise ValueError(
-        'Present value settlement times and present values must be of'
-        'the same length. Settlement times are of size'
-        ' {} and PVs of size {}'.format(
-            len(pv_settle_times), len(present_values)))
+        f'Present value settlement times and present values must be ofthe same length. Settlement times are of size {len(pv_settle_times)} and PVs of size {len(present_values)}'
+    )
 
   if len(bond_cashflows) < 2:
     raise ValueError(
-        'At least two bonds must be supplied to calibrate the curve.'
-        'Found {}.'.format(len(bond_cashflows)))
+        f'At least two bonds must be supplied to calibrate the curve.Found {len(bond_cashflows)}.'
+    )
 
 
 def _validate_args_control_deps(bond_cashflows, bond_cashflow_times,
@@ -558,22 +550,23 @@ def _convert_to_tensors(dtype, bond_cashflows, bond_cashflow_times,
   """Converts each element of the supplied lists to a tensor."""
 
   bond_cashflows = [
-      tf.convert_to_tensor(
-          cashflow, dtype=dtype, name='cashflows_bond_{}'.format(i))
+      tf.convert_to_tensor(cashflow, dtype=dtype, name=f'cashflows_bond_{i}')
       for i, cashflow in enumerate(bond_cashflows)
   ]
   bond_cashflow_times = [
-      tf.convert_to_tensor(
-          cashflow_times, dtype=dtype, name='cashflow_times_bond_{}'.format(i))
+      tf.convert_to_tensor(cashflow_times,
+                           dtype=dtype,
+                           name=f'cashflow_times_bond_{i}')
       for i, cashflow_times in enumerate(bond_cashflow_times)
   ]
   present_values = [
-      tf.convert_to_tensor(pv, dtype=dtype, name='pv_bond_{}'.format(i))
+      tf.convert_to_tensor(pv, dtype=dtype, name=f'pv_bond_{i}')
       for i, pv in enumerate(present_values)
   ]
   pv_settle_times = [
-      tf.convert_to_tensor(
-          pv_time, dtype=dtype, name='pv_settle_time_bond_{}'.format(i))
+      tf.convert_to_tensor(pv_time,
+                           dtype=dtype,
+                           name=f'pv_settle_time_bond_{i}')
       for i, pv_time in enumerate(pv_settle_times)
   ]
 

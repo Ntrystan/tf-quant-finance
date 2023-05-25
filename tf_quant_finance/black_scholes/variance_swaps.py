@@ -233,13 +233,12 @@ def fair_strike(put_strikes,
     # Check the inputs are consistent in length.
     control_dependencies = []
     if validate_args:
-      control_dependencies.append(
+      control_dependencies.extend((
           tf.math.reduce_all(
-              tf.shape(put_strikes)[-1] == tf.shape(put_volatilities)[-1]))
-      control_dependencies.append(
+              tf.shape(put_strikes)[-1] == tf.shape(put_volatilities)[-1]),
           tf.math.reduce_all(
-              tf.shape(call_strikes)[-1] == tf.shape(call_volatilities)[-1]))
-
+              tf.shape(call_strikes)[-1] == tf.shape(call_volatilities)[-1]),
+      ))
     with tf.control_dependencies(control_dependencies):
       # Shape is `batch_shape + [num_put_strikes - 1]`
       put_weights = replicating_weights(

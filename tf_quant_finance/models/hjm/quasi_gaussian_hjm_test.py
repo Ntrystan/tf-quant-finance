@@ -238,10 +238,7 @@ class HJMModelTest(parameterized.TestCase, tf.test.TestCase):
       if dim == 1:
         eff_vol = vol[i][0]
       else:
-        if corr_matrix is None:
-          c = 0.0
-        else:
-          c = corr_matrix[i][1][0]
+        c = 0.0 if corr_matrix is None else corr_matrix[i][1][0]
         eff_vol = np.sqrt(vol[i][0]**2 + vol[i][1]**2 + 2*c*vol[i][0]*vol[i][1])
       with self.subTest('CloseMean'):
         self.assertAllClose(
@@ -283,7 +280,7 @@ class HJMModelTest(parameterized.TestCase, tf.test.TestCase):
           true_std = self.true_zcb_std(times[tidx], curve_times + times[tidx],
                                        self.volatility_batch_1_factor[i][0],
                                        self.mean_reversion_batch_1_factor[i][0])
-          with self.subTest('Batch_{}_time_index{}'.format(i, tidx)):
+          with self.subTest(f'Batch_{i}_time_index{tidx}'):
             self.assertAllClose(
                 sampled_std[i, :, tidx], true_std, rtol=5e-4, atol=5e-4)
 

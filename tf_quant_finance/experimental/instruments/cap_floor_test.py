@@ -42,9 +42,8 @@ class CapFloorTest(tf.test.TestCase, parameterized.TestCase):
         np.array([0.005, 0.01, 0.015, 0.02], dtype=np.float64),
         valuation_date=val_date,
         dtype=np.float64)
-    market = instruments.InterestRateMarket(
-        reference_curve=reference_curve, discount_curve=reference_curve)
-    return market
+    return instruments.InterestRateMarket(reference_curve=reference_curve,
+                                          discount_curve=reference_curve)
 
   @parameterized.named_parameters(
       ('DoublePrecision', np.float64),

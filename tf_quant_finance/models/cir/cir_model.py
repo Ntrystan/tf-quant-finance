@@ -187,7 +187,7 @@ class CirModel(generic_ito_process.GenericItoProcess):
     [1]: A. Alfonsi. Affine Diffusions and Related Processes: Simulation,
       Theory and Applications
     """
-    name = name or (self._name + "_sample_path")
+    name = name or f"{self._name}_sample_path"
     with tf.name_scope(name):
       element_shape = self._batch_shape + [num_samples, self._dim]
 
@@ -294,8 +294,11 @@ class CirModel(generic_ito_process.GenericItoProcess):
     # Shape [num_requested_times, batch_shape..., num_samples, 1]
     samples = samples.stack()
     samples_rank = len(tff_utils.get_shape(samples))
-    perm = [batch_idx for batch_idx in range(1, samples_rank - 2)
-           ] + [samples_rank - 2, 0, samples_rank - 1]
+    perm = list(range(1, samples_rank - 2)) + [
+        samples_rank - 2,
+        0,
+        samples_rank - 1,
+    ]
     # Shape batch_shape + [num_samples, num_requested_times, 1]
     return tf.transpose(samples, perm=perm)
 

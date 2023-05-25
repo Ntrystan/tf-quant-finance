@@ -235,17 +235,16 @@ class ForwardRateAgreement(instrument.Instrument):
       self._rate_index = cashflow_streams.to_list(rate_index)
       # Get a mask for the reference curves
       if rate_index_curves is None:
-        rate_index_curves = []
         if len(self._currency) != len(self._rate_index):
           raise ValueError(
               "When rate_index_curves` is not supplied, number of currencies "
               "and rate indices should be the same `but it is {0} and "
               "{1}".format(len(self._currency), len(self._rate_index)))
 
-        for currency, rate_index in zip(self._currency,
-                                        self._rate_index):
-          rate_index_curves.append(curve_types_lib.RateIndexCurve(
-              currency=currency, index=rate_index))
+        rate_index_curves = [
+            curve_types_lib.RateIndexCurve(currency=currency, index=rate_index)
+            for currency, rate_index in zip(self._currency, self._rate_index)
+        ]
       [
           self._reference_curve_type,
           self._reference_mask
@@ -346,7 +345,7 @@ class ForwardRateAgreement(instrument.Instrument):
       A `Tensor` of shape `batch_shape`  containing the modeled price of each
       FRA contract based on the input market data.
     """
-    name = name or (self._name + "_price")
+    name = name or f"{self._name}_price"
     with tf.name_scope(name):
       discount_curve = cashflow_streams.get_discount_curve(
           self._discount_curve_type, market, self._mask)
@@ -397,7 +396,7 @@ def _process_config(
   if isinstance(config, ForwardRateAgreementConfig):
     return config
   model = config.get("model", "")
-  discounting_curve = config.get("discounting_curve", dict())
+  discounting_curve = config.get("discounting_curve", {})
   return ForwardRateAgreementConfig(discounting_curve=discounting_curve,
                                     model=model)
 

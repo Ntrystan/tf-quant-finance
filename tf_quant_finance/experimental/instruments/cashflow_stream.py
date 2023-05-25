@@ -209,7 +209,7 @@ class FixedCashflowStream(CashflowStream):
     """
 
     del model, pricing_context
-    name = name or (self._name + '_price')
+    name = name or f'{self._name}_price'
     with tf.name_scope(name):
       discount_curve = market.discount_curve
       discount_factors = discount_curve.get_discount_factor(
@@ -420,7 +420,7 @@ class FloatingCashflowStream(CashflowStream):
     """
 
     del model, pricing_context
-    name = name or (self._name + '_price')
+    name = name or f'{self._name}_price'
     with tf.name_scope(name):
       discount_curve = market.discount_curve
       reference_curve = market.reference_curve

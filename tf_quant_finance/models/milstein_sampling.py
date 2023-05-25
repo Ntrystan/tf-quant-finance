@@ -431,11 +431,7 @@ def _for_loop(*, dim, steps_num, current_state, drift_fn, volatility_fn,
               aux_normal_draws):
   """Sample paths using custom for_loop."""
   num_time_points = time_indices.shape.as_list()[-1]
-  if num_time_points == 1:
-    iter_nums = steps_num
-  else:
-    iter_nums = time_indices
-
+  iter_nums = steps_num if num_time_points == 1 else time_indices
   def step_fn(i, current_state):
     # Unpack current_state
     current_state = current_state[0]
@@ -500,8 +496,9 @@ def _stratonovich_integral(dim, dt, sqrt_dt, dw, stratonovich_draws, order):
   p = order - 1
   sqrt_rho_p = tf.sqrt(
       tf.constant(
-          1 / 12 - sum([1 / r**2 for r in range(1, order + 1)]) / 2 / _PI**2,
-          dtype=dw.dtype))
+          1 / 12 - sum(1 / r**2 for r in range(1, order + 1)) / 2 / _PI**2,
+          dtype=dw.dtype,
+      ))
   mu = stratonovich_draws[0]
   # Move dimensions around to make computation easier later.
   zeta = tf.transpose(stratonovich_draws[1], [2, 0, 1])
@@ -539,13 +536,11 @@ def _milstein_hot(dim, vol, grad_vol, dt, sqrt_dt, dw, stratonovich_draws,
       order=stratonovich_order)
   stratonovich_integrals = tf.linalg.set_diag(offdiag, dw * dw / 2)
 
-  # Compute L_bar^{j1} b^{k, j2} J(j1, j2)
-  # See Eq 3.4 of section 10.3 in [2]
-  stacked_grad_vol = []
-  for state_ix in range(dim):
-    stacked_grad_vol.append(
-        tf.transpose(
-            tf.stack([x[..., state_ix, :] for x in grad_vol], -1), [0, 2, 1]))
+  stacked_grad_vol = [
+      tf.transpose(tf.stack([x[..., state_ix, :]
+                             for x in grad_vol], -1), [0, 2, 1])
+      for state_ix in range(dim)
+  ]
   stacked_grad_vol = tf.stack(stacked_grad_vol, 0)
   lbar = tf.matmul(stacked_grad_vol, vol)
   return tf.transpose(
@@ -608,25 +603,24 @@ def _milstein_step(*, dim, i, written_count, current_state, result, drift_fn,
                                  mean=wiener_mean,
                                  random_type=random_type,
                                  seed=seed)
+  stratonovich_draws = []
   if aux_normal_draws is not None:
-    stratonovich_draws = []
-    for j in range(3):
-      stratonovich_draws.append(
-          tf.reshape(aux_normal_draws[j][i],
-                     [num_samples, dim, stratonovich_order]))
+    stratonovich_draws.extend(
+        tf.reshape(aux_normal_draws[j][i],
+                   [num_samples, dim, stratonovich_order]) for j in range(3))
   else:
-    stratonovich_draws = []
     # Three sets of normal draws for stratonovich integrals.
-    for j in range(3):
-      stratonovich_draws.append(
-          random.mv_normal_sample((num_samples,),
-                                  mean=tf.zeros(
-                                      (dim, stratonovich_order),
-                                      dtype=current_state.dtype,
-                                      name='stratonovich_draws_{}'.format(j)),
-                                  random_type=random_type,
-                                  seed=seed))
-
+    stratonovich_draws.extend(
+        random.mv_normal_sample(
+            (num_samples, ),
+            mean=tf.zeros(
+                (dim, stratonovich_order),
+                dtype=current_state.dtype,
+                name=f'stratonovich_draws_{j}',
+            ),
+            random_type=random_type,
+            seed=seed,
+        ) for j in range(3))
   if dim == 1:
     drift = drift_fn(current_time, current_state)
     vol = volatility_fn(current_time, current_state)

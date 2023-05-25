@@ -556,13 +556,10 @@ def _build_swap_curve(float_leg_start_times, float_leg_end_times,
 def _convert_to_tensors(dtype, input_array, name):
   """Converts the supplied list to a tensor."""
 
-  output_tensor = [
-      tf.convert_to_tensor(
-          x, dtype=dtype, name=name + '_{}'.format(i))
+  return [
+      tf.convert_to_tensor(x, dtype=dtype, name=f'{name}_{i}')
       for i, x in enumerate(input_array)
   ]
-
-  return output_tensor
 
 
 def _initialize_instrument_weights(float_times, fixed_times, dtype):

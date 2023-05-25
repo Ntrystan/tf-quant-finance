@@ -68,8 +68,7 @@ def iterate_nested(
       yield keys, v
     else:  # It is nested.
       as_dict = dataclasses.asdict(v) if dataclasses.is_dataclass(v) else v
-      for val in iterate_nested(as_dict, keys):
-        yield val
+      yield from iterate_nested(as_dict, keys)
 
 
 def _is_nested(x: Any) -> bool:

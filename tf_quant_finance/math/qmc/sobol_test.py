@@ -26,7 +26,7 @@ qmc = tff.math.qmc
 class SobolTest(tf.test.TestCase):
 
   def test_normal_integral_mean_and_var_correctly_estimated(self):
-    n = int(1000)
+    n = 1000
     # This test is almost identical to the test with the same name found in
     # nomisma_quant_finance/math/random_ops/sobol/sobol_test.py. The only
     # difference is the need to remove point (0, 0) which is sampled by default.

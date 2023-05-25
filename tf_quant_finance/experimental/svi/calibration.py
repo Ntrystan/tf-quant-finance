@@ -258,8 +258,7 @@ def _estimate_initial_position(log_moneyness, total_variance):
   b = (e_xy - e_x * e_y) / var_x
   a = e_y - b * e_x
 
-  initial_position = tf.transpose([a, b, rho, m, sigma])
-  return initial_position
+  return tf.transpose([a, b, rho, m, sigma])
 
 
 def _raw_svi_to_unconstrained(parameters):

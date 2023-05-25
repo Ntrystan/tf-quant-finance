@@ -264,7 +264,7 @@ class HestonModel(generic_ito_process.GenericItoProcess):
     if random_type is None:
       random_type = random.RandomType.PSEUDO
     # Note: all the notations below are the same as in [1].
-    name = name or (self._name + '_sample_path')
+    name = name or f'{self._name}_sample_path'
     with tf.name_scope(name):
       times = tf.convert_to_tensor(times, self._dtype)
       if normal_draws is not None:
@@ -288,17 +288,16 @@ class HestonModel(generic_ito_process.GenericItoProcess):
             raise ValueError(
                 'When `times_grid` is not supplied, either `num_time_steps` '
                 'or `time_step` should be defined.')
-          else:
-            num_time_steps = tf.convert_to_tensor(
-                num_time_steps, dtype=tf.int32, name='num_time_steps')
-            time_step = times[-1] / tf.cast(num_time_steps, dtype=self._dtype)
-        else:
-          if num_time_steps is not None:
-            raise ValueError(
-                'Both `time_step` and `num_time_steps` can not be `None` '
-                'simultaneously when calling sample_paths of HestonModel.')
+          num_time_steps = tf.convert_to_tensor(
+              num_time_steps, dtype=tf.int32, name='num_time_steps')
+          time_step = times[-1] / tf.cast(num_time_steps, dtype=self._dtype)
+        elif num_time_steps is None:
           time_step = tf.convert_to_tensor(time_step, dtype=self._dtype,
                                            name='time_step')
+        else:
+          raise ValueError(
+              'Both `time_step` and `num_time_steps` can not be `None` '
+              'simultaneously when calling sample_paths of HestonModel.')
       else:
         times_grid = tf.convert_to_tensor(times_grid, dtype=self._dtype,
                                           name='times_grid')
@@ -496,7 +495,7 @@ class HestonModel(generic_ito_process.GenericItoProcess):
       param = getattr(self, param_name)
       if not isinstance(param, tf.Tensor):
         raise ValueError(f'Only constant values supported for {param_name}')
-    name = name or (self._name + '_expected_total_variance')
+    name = name or f'{self._name}_expected_total_variance'
     with tf.name_scope(name):
       future_times = tf.convert_to_tensor(
           future_times, self._dtype, name='future_times')
@@ -547,8 +546,7 @@ def _update_variance(
   next_var_false = tf.where(uniforms > p,
                             tf.math.log(1 - p) - tf.math.log(1 - uniforms),
                             tf.zeros_like(uniforms)) / beta
-  next_var = tf.where(cond, next_var_true, next_var_false)
-  return next_var
+  return tf.where(cond, next_var_true, next_var_false)
 
 
 def _update_log_spot(
@@ -566,10 +564,8 @@ def _update_log_spot(
   k_3 = gamma_1 * time_step * (1 - rho**2)
   k_4 = gamma_2 * time_step * (1 - rho**2)
 
-  next_log_spot = (
-      current_log_spot + k_0 + k_1 * current_vol + k_2 * next_vol
-      + tf.sqrt(k_3 * current_vol + k_4 * next_vol) * normals)
-  return next_log_spot
+  return (current_log_spot + k_0 + k_1 * current_vol + k_2 * next_vol +
+          tf.sqrt(k_3 * current_vol + k_4 * next_vol) * normals)
 
 
 def _prepare_grid(
@@ -609,10 +605,10 @@ def _prepare_grid(
     which elements of 'all_times' correspond to THE values from `times`.
     Guarantees that times[0]=0 and mask[0]=False.
   """
-  additional_times = []
-  for param in params:
-    if isinstance(param, piecewise.PiecewiseConstantFunc):
-      additional_times.append(param.jump_locations())
+  additional_times = [
+      param.jump_locations() for param in params
+      if isinstance(param, piecewise.PiecewiseConstantFunc)
+  ]
   if times_grid is None:
     if time_step is not None:
       grid = tf.range(0.0, times[-1], time_step, dtype=dtype)

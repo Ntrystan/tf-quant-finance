@@ -57,11 +57,7 @@ class HJMSwaptionTest(parameterized.TestCase, tf.test.TestCase):
     mean_reversion = [0.03]
     volatility = [0.02]
 
-    if use_xla:
-      curve_times = np.array(fixed_leg_payment_times - expiries)
-    else:
-      curve_times = None
-
+    curve_times = np.array(fixed_leg_payment_times - expiries) if use_xla else None
     def _fn():
       price = tff.models.hjm.swaption_price(
           expiries=expiries,

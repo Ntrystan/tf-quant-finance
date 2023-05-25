@@ -74,9 +74,9 @@ def interpolate(interpolation_times,
       containing the interpolated yields.
   """
   with tf.compat.v1.name_scope(
-      name,
-      default_name='constant_fwd_interpolation',
-      values=[interpolation_times, reference_times, reference_yields]):
+        name,
+        default_name='constant_fwd_interpolation',
+        values=[interpolation_times, reference_times, reference_yields]):
     interpolation_times = tf.convert_to_tensor(interpolation_times, dtype=dtype)
     dtype = dtype or interpolation_times.dtype
     reference_times = tf.convert_to_tensor(reference_times, dtype=dtype)
@@ -96,5 +96,4 @@ def interpolate(interpolation_times,
     interpolated_prod = linear_interpolation.interpolate(
         interpolation_times, reference_times,
         reference_times * reference_yields, dtype=dtype)
-    interpolated = interpolated_prod / interpolation_times
-    return interpolated
+    return interpolated_prod / interpolation_times

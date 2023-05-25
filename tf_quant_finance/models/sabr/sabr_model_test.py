@@ -297,9 +297,10 @@ class SabrModelTest(parameterized.TestCase, tf.test.TestCase):
       process_table.append(price)
 
     euler_error = 0.0001681610489796333
-    process_error = 0
-    for i in range(0, len(timesteps) - 1):
-      process_error += np.abs(process_table[i] - process_table[i + 1])
+    process_error = sum(
+        np.abs(process_table[i] - process_table[i + 1])
+        for i in range(0,
+                       len(timesteps) - 1))
     # Average relative error should be lower. Euler error is precomputed
     # for `test_seed` using STATELESS_ANTITHETIC random type.
     self.assertLessEqual(process_error, euler_error)

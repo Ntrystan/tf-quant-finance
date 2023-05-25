@@ -277,8 +277,7 @@ class QuasiGaussianHJM(generic_ito_process.GenericItoProcess):
 
       drift_y = (tf.expand_dims(self._rho, axis=self._batch_rank) *
                  volatility_squared - mr2 * y)
-      drift_y = tf.reshape(
-          drift_y, batch_shape_x + [self._factors * self._factors])
+      drift_y = tf.reshape(drift_y, batch_shape_x + [self._factors**2])
       drift = tf.concat([drift_x, drift_y], axis=-1)
       return drift
 
@@ -353,12 +352,13 @@ class QuasiGaussianHJM(generic_ito_process.GenericItoProcess):
         (a) If `times` has rank different from `1`.
         (b) If Euler scheme is used by times is not supplied.
     """
-    name = name or self._name + '_sample_path'
+    name = name or f'{self._name}_sample_path'
     with tf.name_scope(name):
       times = tf.convert_to_tensor(times, self._dtype)
       if len(times.shape) != 1:
-        raise ValueError('`times` should be a rank 1 Tensor. '
-                         'Rank is {} instead.'.format(len(times.shape)))
+        raise ValueError(
+            f'`times` should be a rank 1 Tensor. Rank is {len(times.shape)} instead.'
+        )
       return self._sample_paths(
           times, time_step, num_time_steps, num_samples, random_type, skip,
           seed)
@@ -427,7 +427,7 @@ class QuasiGaussianHJM(generic_ito_process.GenericItoProcess):
       [1]: Leif B.G. Andersen and Vladimir V. Piterbarg. Interest Rate Modeling,
       Volume II: Term Structure Models. 2010.
     """
-    name = name or self._name + '_sample_discount_curve_paths'
+    name = name or f'{self._name}_sample_discount_curve_paths'
     with tf.name_scope(name):
       times = tf.convert_to_tensor(times, self._dtype)
       num_times = tf.shape(times)[0]
@@ -543,9 +543,7 @@ class QuasiGaussianHJM(generic_ito_process.GenericItoProcess):
     # term2.shape = (batch_size, num_samples, num_curve_times, num_sim_steps)
     term2 = tf.math.reduce_sum(
         g_t_tau * tf.linalg.matvec(y_t, g_t_tau), axis=-1)
-    p_t_tau = p_0_t_tau * tf.math.exp(-term1 - 0.5 * term2)
-    # p_t_tau.shape=(batch_size, num_samples, num_curve_times, num_sim_steps)
-    return p_t_tau
+    return p_0_t_tau * tf.math.exp(-term1 - 0.5 * term2)
 
 
 def _get_valid_sqrt_matrix(rho):

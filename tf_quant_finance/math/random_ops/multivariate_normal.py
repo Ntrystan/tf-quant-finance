@@ -240,9 +240,8 @@ def multivariate_normal(sample_shape,
           **kwargs)
     else:
       raise NotImplementedError(
-          'Only STATELESS, PSEUDO, PSEUDO_ANTITHETIC, STATELESS_ANTITHETIC,  '
-          'HALTON, HALTON_RANDOMIZED, and SOBOL random types are currently '
-          'supported. Supplied: {}'. format(random_type))
+          f'Only STATELESS, PSEUDO, PSEUDO_ANTITHETIC, STATELESS_ANTITHETIC,  HALTON, HALTON_RANDOMIZED, and SOBOL random types are currently supported. Supplied: {random_type}'
+      )
 
 
 def _mvnormal_pseudo(sample_shape,
@@ -261,10 +260,10 @@ def _mvnormal_pseudo(sample_shape,
     samples = tf.random.normal(shape=output_shape,
                                dtype=dtype,
                                seed=seed)
+  elif seed is None:
+    raise ValueError('`seed` should be specified if the `random_type` is '
+                     '`STATELESS` or `STATELESS_ANTITHETIC`')
   else:
-    if seed is None:
-      raise ValueError('`seed` should be specified if the `random_type` is '
-                       '`STATELESS` or `STATELESS_ANTITHETIC`')
     samples = tf.random.stateless_normal(
         shape=output_shape, dtype=dtype, seed=seed, alg='philox')
   if scale_matrix is None:
@@ -373,10 +372,7 @@ def _mvnormal_quasi(sample_shape,
   # Number of quasi random samples
   num_samples = tf.reduce_prod(output_shape_t) // dim
   # Number of initial low discrepancy sequence numbers to skip
-  if 'skip' in kwargs:
-    skip = kwargs['skip']
-  else:
-    skip = 0
+  skip = kwargs.get('skip', 0)
   if random_type == RandomType.SOBOL:
     # TODO(b/182621549): For Sobol sequences, dimension should be known at graph
     # construction time.
@@ -388,11 +384,8 @@ def _mvnormal_quasi(sample_shape,
     low_discrepancy_seq = sobol.sample(
         dim=dim, num_results=num_samples, skip=skip,
         dtype=dtype)
-  else:  # HALTON or HALTON_RANDOMIZED random_dtype
-    if 'randomization_params' in kwargs:
-      randomization_params = kwargs['randomization_params']
-    else:
-      randomization_params = None
+  else:# HALTON or HALTON_RANDOMIZED random_dtype
+    randomization_params = kwargs.get('randomization_params', None)
     randomized = random_type == RandomType.HALTON_RANDOMIZED
     # Shape [num_samples, dim] of the Sobol samples
     low_discrepancy_seq, _ = halton.sample(
@@ -429,11 +422,10 @@ def _process_mean_scale(mean, scale_matrix, covariance_matrix, dtype):
   if scale_matrix is not None:
     scale_matrix = tf.convert_to_tensor(scale_matrix, dtype=dtype,
                                         name='scale_matrix')
-  else:
-    if covariance_matrix is not None:
-      covariance_matrix = tf.convert_to_tensor(covariance_matrix, dtype=dtype,
-                                               name='covariance_matrix')
-      scale_matrix = tf.linalg.cholesky(covariance_matrix)
+  elif covariance_matrix is not None:
+    covariance_matrix = tf.convert_to_tensor(covariance_matrix, dtype=dtype,
+                                             name='covariance_matrix')
+    scale_matrix = tf.linalg.cholesky(covariance_matrix)
   if mean is None:
     mean = 0.0
     # batch_shape includes the dimension of the samples
@@ -454,7 +446,4 @@ def _process_mean_scale(mean, scale_matrix, covariance_matrix, dtype):
 def _get_static_dim(t):
   """Returns static dimension value if possible."""
   dim = t.shape.as_list()[-1]
-  if dim is None:
-    return tf.shape(t)[-1]
-  else:
-    return dim
+  return tf.shape(t)[-1] if dim is None else dim

@@ -278,7 +278,7 @@ class FixedCashflowStream:
       containing the dates and the corresponding cashflows price for each
       stream based on the input market data.
     """
-    name = name or (self._name + "_cashflows")
+    name = name or f"{self._name}_cashflows"
     with tf.name_scope(name):
       valuation_date = dateslib.convert_to_date_tensor(market.date)
       future_cashflows = tf.cast(self._payment_dates >= valuation_date,
@@ -304,7 +304,7 @@ class FixedCashflowStream:
       A `Tensor` of shape `batch_shape`  containing the modeled price of each
       stream based on the input market data.
     """
-    name = name or (self._name + "_price")
+    name = name or f"{self._name}_price"
     with tf.name_scope(name):
       discount_curve = get_discount_curve(
           self._discount_curve_type, market, self._mask)
@@ -571,11 +571,12 @@ class FloatingCashflowStream:
           _get_attr(coupon_spec, "floating_rate_type"))
       self._currency = to_list(self._currency)
       if rate_index_curves is None:
-        rate_index_curves = []
-        for currency, floating_rate_type in zip(self._currency,
-                                                self._floating_rate_type):
-          rate_index_curves.append(curve_types_lib.RateIndexCurve(
-              currency=currency, index=floating_rate_type))
+        rate_index_curves = [
+            curve_types_lib.RateIndexCurve(currency=currency,
+                                           index=floating_rate_type)
+            for currency, floating_rate_type in zip(self._currency,
+                                                    self._floating_rate_type)
+        ]
       [
           self._reference_curve_type,
           self._reference_mask
@@ -637,7 +638,7 @@ class FloatingCashflowStream:
       containing the dates and the corresponding forward rates for each stream
       based on the input market data.
     """
-    name = name or (self._name + "_forward_rates")
+    name = name or f"{self._name}_forward_rates"
     with tf.name_scope(name):
       reference_curve = get_discount_curve(
           self._reference_curve_type, market, self._reference_mask)
@@ -714,7 +715,7 @@ class FloatingCashflowStream:
       containing the dates and the corresponding cashflows price for each
       stream based on the input market data.
     """
-    name = name or (self._name + "_cashflows")
+    name = name or f"{self._name}_cashflows"
     with tf.name_scope(name):
       _, forward_rates = self.forward_rates(market, past_fixing=past_fixing)
 
@@ -742,7 +743,7 @@ class FloatingCashflowStream:
       stream based on the input market data.
     """
 
-    name = name or (self._name + "_price")
+    name = name or f"{self._name}_price"
     with tf.name_scope(name):
       discount_curve = get_discount_curve(
           self._discount_curve_type, market, self._mask)
@@ -868,13 +869,13 @@ def get_discount_curve(
   prepare_discounts = tf.gather(all_discounts, mask)
   prepare_dates = dateslib.dates_from_ordinals(
       tf.gather(all_dates.ordinal(), mask))
-  # All curves are assumed to have the same interpolation method
-  # TODO(b/168411153): Extend to the case with multiple curve configs.
-  discount_curve = rate_curve.RateCurve(
-      prepare_dates, prepare_discounts, market.date,
+  return rate_curve.RateCurve(
+      prepare_dates,
+      prepare_discounts,
+      market.date,
       interpolator=interpolation_method,
-      interpolate_rates=interpolate_rates)
-  return discount_curve
+      interpolate_rates=interpolate_rates,
+  )
 
 
 def _get_fixings(start_dates,
@@ -954,11 +955,12 @@ def process_curve_types(
     if isinstance(curve, curve_types_lib.RiskFreeCurve):
       return curve.currency.value
     elif isinstance(curve, curve_types_lib.RateIndexCurve):
-      return (curve.currency.value + "_" + curve.index.type.value
-              + "_" + "_".join(curve.index.source)
-              + "_" + "_".join(curve.index.name))
+      return (
+          (f"{curve.currency.value}_{curve.index.type.value}_" +
+           "_".join(curve.index.source)) + "_") + "_".join(curve.index.name)
     else:
       raise ValueError(f"{type(curve)} is not supported.")
+
   curve_list = to_list(curve_types)
   if mask is not None:
     return curve_list, mask
@@ -998,17 +1000,11 @@ def create_mask(x):
 
 def to_list(x):
   """Converts input to a list if necessary."""
-  if isinstance(x, (list, tuple)):
-    return x
-  else:
-    return [x]
+  return x if isinstance(x, (list, tuple)) else [x]
 
 
 def _get_attr(obj, key):
-  if isinstance(obj, dict):
-    return obj[key]
-  else:
-    return obj.__getattribute__(key)
+  return obj[key] if isinstance(obj, dict) else obj.__getattribute__(key)
 
 
 __all__ = ["FixedCashflowStream", "FloatingCashflowStream"]

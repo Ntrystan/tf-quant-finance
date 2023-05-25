@@ -491,9 +491,9 @@ def interpolate_yields(interpolation_times,
                      ' be supplied.')
 
   with tf.compat.v1.name_scope(
-      name,
-      default_name='interpolate_forward_rate',
-      values=[interpolation_times, reference_times, yields, discrete_forwards]):
+        name,
+        default_name='interpolate_forward_rate',
+        values=[interpolation_times, reference_times, yields, discrete_forwards]):
     if discrete_forwards is not None:
       discrete_forwards = tf.convert_to_tensor(discrete_forwards, dtype=dtype)
       reference_yields = forwards.yields_from_forward_rates(
@@ -518,9 +518,8 @@ def interpolate_yields(interpolation_times,
     intervals = piecewise.find_interval_index(
         interpolation_times, extended_times, last_interval_is_closed=True)
     base_values = tf.gather(extended_yields * extended_times, intervals)
-    interpolated = tf.math.divide_no_nan(base_values + integrated_adjustments,
-                                         interpolation_times)
-    return interpolated
+    return tf.math.divide_no_nan(base_values + integrated_adjustments,
+                                 interpolation_times)
 
 
 def _interpolate_adjacent(times, values, name=None):

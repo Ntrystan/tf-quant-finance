@@ -937,14 +937,16 @@ def swaption_price(*,
     forward_swap_rate = tf.math.reduce_sum(
         float_leg_start_times_discount_factors -
         float_leg_end_times_discount_factors, axis=-1) / swap_annuity
-    swaption_value = option_price(volatilities=volatilities,
-                                  strikes=fixed_leg_coupon,
-                                  expiries=expiries,
-                                  forwards=forward_swap_rate,
-                                  is_call_options=is_payer_swaption,
-                                  is_normal_volatility=is_normal_volatility,
-                                  dtype=dtype,
-                                  name=name + '_option_price')
+    swaption_value = option_price(
+        volatilities=volatilities,
+        strikes=fixed_leg_coupon,
+        expiries=expiries,
+        forwards=forward_swap_rate,
+        is_call_options=is_payer_swaption,
+        is_normal_volatility=is_normal_volatility,
+        dtype=dtype,
+        name=f'{name}_option_price',
+    )
     return notional * swap_annuity * swaption_value
 
 

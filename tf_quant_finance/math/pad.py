@@ -119,18 +119,17 @@ def pad_date_tensors(date_tensors, name=None):
 
 def _prepare_pad_values(pad_values, tensors, dtype):
   """Prepares a list of paddings."""
-  if pad_values is not None:
-    if isinstance(pad_values, (list, tuple)):
-      # Shapes compatible with [batch_shape_i, 1]
-      pad_values = [tf.expand_dims(
-          tf.convert_to_tensor(pad_value, dtype=dtype, name="pad_values"),
-          axis=-1) for pad_value in pad_values]
-    else:
-      pad_values = len(tensors) * [tf.constant(pad_values, dtype=dtype,
-                                               name="pad_values")]
-  else:
+  if pad_values is None:
     # Use final value for padding if `pad_values` are not supplied
     pad_values = [t[..., -1:] for t in tensors]
+  elif isinstance(pad_values, (list, tuple)):
+    # Shapes compatible with [batch_shape_i, 1]
+    pad_values = [tf.expand_dims(
+        tf.convert_to_tensor(pad_value, dtype=dtype, name="pad_values"),
+        axis=-1) for pad_value in pad_values]
+  else:
+    pad_values = len(tensors) * [tf.constant(pad_values, dtype=dtype,
+                                             name="pad_values")]
   return pad_values
 
 __all__ = [

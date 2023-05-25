@@ -154,7 +154,7 @@ class Swaption:
       ValueError: If an unsupported model is supplied to the function.
     """
     model = model or rc.InterestRateModelType.LOGNORMAL_RATE
-    name = name or (self._name + '_price')
+    name = name or f'{self._name}_price'
     with tf.name_scope(name):
       swap_annuity = self._swap.annuity(valuation_date, market, model)
       forward_swap_rate = self._swap.par_rate(valuation_date, market, model)

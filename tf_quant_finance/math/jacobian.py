@@ -54,10 +54,7 @@ def jacobian(func, x, unconnected_gradients=None,
         parallel_iterations=parallel_iterations,
         experimental_use_pfor=experimental_use_pfor)
 
-    if is_x_batch_size:
-      return jac
-
-    return jac[0]
+    return jac if is_x_batch_size else jac[0]
 
 
 def value_and_jacobian(f, x, unconnected_gradients=None, name=None,
@@ -102,15 +99,9 @@ def value_and_jacobian(f, x, unconnected_gradients=None, name=None,
         parallel_iterations=parallel_iterations,
         experimental_use_pfor=experimental_use_pfor)
 
-    if is_x_batch_size:
-      return y, jac
-
-    return y[0], jac[0]
+    return (y, jac) if is_x_batch_size else (y[0], jac[0])
 
 
 def _prepare_args(x):
   """Converts `x` to a batched dimension if necessary."""
-  if len(x.shape) == 1:
-    return tf.expand_dims(x, axis=0), False
-
-  return x, True
+  return (tf.expand_dims(x, axis=0), False) if len(x.shape) == 1 else (x, True)

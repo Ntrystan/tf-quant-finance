@@ -115,7 +115,7 @@ class PeriodTensor(tensor_wrapper.TensorWrapper):
   def _apply_sequence_to_tensor_op(cls, op_fn, tensor_wrappers):
     q = op_fn([t.quantity() for t in tensor_wrappers])
     period_type = tensor_wrappers[0].period_type()
-    if not all(t.period_type() == period_type for t in tensor_wrappers[1:]):
+    if any(t.period_type() != period_type for t in tensor_wrappers[1:]):
       raise ValueError("Combined PeriodTensors must have the same PeriodType")
     return PeriodTensor(q, period_type)
 
@@ -124,9 +124,9 @@ class PeriodTensor(tensor_wrapper.TensorWrapper):
     return PeriodTensor(q, self._period_type)
 
   def __repr__(self):
-    output = "PeriodTensor: shape={}".format(self.shape)
+    output = f"PeriodTensor: shape={self.shape}"
     if tf.executing_eagerly():
-      return output + ", quantities={}".format(repr(self._quantity.numpy()))
+      return f"{output}, quantities={repr(self._quantity.numpy())}"
     return output
 
 

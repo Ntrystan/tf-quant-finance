@@ -320,7 +320,7 @@ class BoundedHolidayCalendar(holiday_calendar.HolidayCalendar):
       return tf.where(tf.equal(dates_preceding.month(), original_dates.month()),
                       preceding, following)
 
-    raise ValueError("Unrecognized convention: {}".format(convention))
+    raise ValueError(f"Unrecognized convention: {convention}")
 
   def _compute_is_bus_day_table(self):
     """Computes and caches "is business day" table."""

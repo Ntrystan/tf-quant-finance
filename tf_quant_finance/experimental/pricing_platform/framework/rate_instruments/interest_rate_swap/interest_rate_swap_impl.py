@@ -223,24 +223,22 @@ class InterestRateSwap(instrument.Instrument):
             # Default discounting is the risk free curve
             risk_free = curve_types_lib.RiskFreeCurve(currency=currency)
             self._discount_curve_type.append(risk_free)
-      if start_date is not None:
-        if isinstance(start_date, tf.Tensor):
-          self._start_date = dateslib.dates_from_tensor(
-              start_date)
-        else:
-          self._start_date = dateslib.convert_to_date_tensor(
-              start_date)
-      else:
+      if start_date is None:
         self._start_date = None
-      if maturity_date is not None:
-        if isinstance(maturity_date, tf.Tensor):
-          self._maturity_date = dateslib.dates_from_tensor(
-              maturity_date)
-        else:
-          self._maturity_date = dateslib.convert_to_date_tensor(
-              maturity_date)
+      elif isinstance(start_date, tf.Tensor):
+        self._start_date = dateslib.dates_from_tensor(
+            start_date)
       else:
+        self._start_date = dateslib.convert_to_date_tensor(
+            start_date)
+      if maturity_date is None:
         self._maturity_date = None
+      elif isinstance(maturity_date, tf.Tensor):
+        self._maturity_date = dateslib.dates_from_tensor(
+            maturity_date)
+      else:
+        self._maturity_date = dateslib.convert_to_date_tensor(
+            maturity_date)
       self._pay_leg_schedule_fn = pay_leg_schedule_fn
       self._receive_leg_schedule_fn = receive_leg_schedule_fn
       self._pay_leg_schedule = pay_leg_schedule
@@ -328,7 +326,7 @@ class InterestRateSwap(instrument.Instrument):
       A `Tensor` of shape `batch_shape`  containing the modeled price of each
       IRS contract based on the input market data.
     """
-    name = name or (self._name + "_price")
+    name = name or f"{self._name}_price"
     with tf.name_scope(name):
       pay_cf = self._pay_leg.price(market)
       receive_cf = self._receive_leg.price(market)
@@ -576,7 +574,7 @@ def _process_config(
     return config
   if isinstance(config, dict):
     past_fixing = config.get("past_fixing", None)
-    discounting_curve = config.get("discounting_curve", dict())
+    discounting_curve = config.get("discounting_curve", {})
     return InterestRateSwapConfig(discounting_curve=discounting_curve,
                                   past_fixing=past_fixing)
   else:

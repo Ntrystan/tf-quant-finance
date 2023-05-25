@@ -127,20 +127,14 @@ def _quasi_uniform(
   # Number of quasi random samples
   num_samples = tf.reduce_prod(sample_shape)
   # Number of initial low discrepancy sequence numbers to skip
-  if 'skip' in kwargs:
-    skip = kwargs['skip']
-  else:
-    skip = 0
+  skip = kwargs.get('skip', 0)
   if random_type == RandomType.SOBOL:
     # Shape [num_samples, dim] of the Sobol samples
     low_discrepancy_seq = sobol.sample(
         dim=dim, num_results=num_samples, skip=skip,
         dtype=dtype)
-  else:  # HALTON or HALTON_RANDOMIZED random_dtype
-    if 'randomization_params' in kwargs:
-      randomization_params = kwargs['randomization_params']
-    else:
-      randomization_params = None
+  else:# HALTON or HALTON_RANDOMIZED random_dtype
+    randomization_params = kwargs.get('randomization_params', None)
     randomized = random_type == RandomType.HALTON_RANDOMIZED
     # Shape [num_samples, dim] of the Sobol samples
     low_discrepancy_seq, _ = halton.sample(

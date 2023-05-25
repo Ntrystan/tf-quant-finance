@@ -168,4 +168,4 @@ def implied_vol(*,
         dtype=dtype,
         name=name,
         **kwargs)[0]
-  raise ValueError('Unknown implied vol method {}'.format(method))
+  raise ValueError(f'Unknown implied vol method {method}')
