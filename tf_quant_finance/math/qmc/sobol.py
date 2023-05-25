@@ -194,20 +194,18 @@ def sobol_generating_matrices(dim: types.IntTensor,
 
     control_deps = []
     if validate_args:
-      control_deps.append(
-          tf.debugging.assert_positive(dim, message='dim must be positive'))
-      control_deps.append(
-          tf.debugging.assert_positive(
-              num_results, message='num_results must be positive'))
-      control_deps.append(
-          tf.debugging.assert_positive(
-              num_digits, message='num_digits must be positive'))
-      control_deps.append(
+      control_deps.extend((
+          tf.debugging.assert_positive(dim, message='dim must be positive'),
+          tf.debugging.assert_positive(num_results,
+                                       message='num_results must be positive'),
+          tf.debugging.assert_positive(num_digits,
+                                       message='num_digits must be positive'),
           tf.debugging.assert_less(
               log_num_results,
               tf.constant(32, dtype=dtype),
-              message='log2(num_results) must be less than 32'))
-
+              message='log2(num_results) must be less than 32',
+          ),
+      ))
     with tf.control_dependencies(control_deps):
       # shape: (1, log_num_results)
       identity = _identity_matrix(log_num_results, num_digits, dtype=dtype)

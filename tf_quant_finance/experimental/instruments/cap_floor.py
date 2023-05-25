@@ -180,7 +180,7 @@ class CapAndFloor:
     """
 
     model = model or rc.InterestRateModelType.LOGNORMAL_RATE
-    name = name or (self._name + '_price')
+    name = name or f'{self._name}_price'
     with tf.name_scope(name):
       valuation_date = dates.convert_to_date_tensor(valuation_date)
       if model == rc.InterestRateModelType.LOGNORMAL_RATE:

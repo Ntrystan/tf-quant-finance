@@ -461,8 +461,7 @@ def _create_corr_matrix(rho, dtype):
 def _machine_eps(dtype):
   """Returns the machine epsilon for the supplied dtype."""
   dtype = tf.as_dtype(dtype).as_numpy_dtype
-  eps = 1e-6 if dtype == np.float32 else 1e-10
-  return eps
+  return 1e-6 if dtype == np.float32 else 1e-10
 
 
 def _two_d_integration(grid, value_grid):

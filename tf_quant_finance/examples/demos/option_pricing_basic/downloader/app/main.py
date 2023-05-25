@@ -65,7 +65,7 @@ if not path.exists(IPC_PATH):
 def init_socket():
   context = zmq.Context()
   sender = context.socket(zmq.PUSH)
-  channel = 'ipc://' + path.join(IPC_PATH, IPC_NAME)
+  channel = f'ipc://{path.join(IPC_PATH, IPC_NAME)}'
   app.logger.info(f'Pricer requests will be sent at {channel}')
   sender.bind(channel)
   return sender
@@ -178,18 +178,16 @@ def forward_request():
   """Forwards incoming job requests to the pricer."""
   request_data = flask.request.get_json()
   job_request = JobRequest.from_dict(request_data)
-  err = job_request.download_if_needed()
-  if err:
+  if err := job_request.download_if_needed():
     return _make_response('Error', err), 400
-  else:
-    # Send work to the compute process.
-    app.logger.info('Forwarding compute request to backend.')
-    data_obj = datatypes.ComputeData(
-        market_data_path=job_request.market_data_local_path(),
-        portfolio_path=job_request.portfolio_local_path())
-    SENDER.send_pyobj(data_obj)
-    app.logger.info('Sent request to backend.')
-    return _make_response('OK', ''), 201
+  # Send work to the compute process.
+  app.logger.info('Forwarding compute request to backend.')
+  data_obj = datatypes.ComputeData(
+      market_data_path=job_request.market_data_local_path(),
+      portfolio_path=job_request.portfolio_local_path())
+  SENDER.send_pyobj(data_obj)
+  app.logger.info('Sent request to backend.')
+  return _make_response('OK', ''), 201
 
 
 @app.route('/')

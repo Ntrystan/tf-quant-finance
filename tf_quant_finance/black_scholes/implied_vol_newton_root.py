@@ -239,12 +239,12 @@ def _newton_implied_vol(prices, strikes, expiries, forwards, discount_factors,
         prices, forwards, strikes, expiries, is_call_options,
         discount_factors)
 
-  results = newton.root_finder(
+  return newton.root_finder(
       pricer,
       initial_volatilities,
       max_iterations=max_iterations,
-      tolerance=tolerance)
-  return results
+      tolerance=tolerance,
+  )
 
 
 def _get_normalizations(prices, forwards, strikes, discount_factors):

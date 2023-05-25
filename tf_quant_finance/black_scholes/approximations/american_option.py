@@ -494,15 +494,10 @@ def bjerksund_stensland(*,
     else:
       is_call_options = tf.constant(True, name='is_call_options')
 
-    if modified_boundary:
-      bjerksund_stensland_model = _call_2002
-    else:
-      bjerksund_stensland_model = _call_1993
-
-    # If cost of carry is greater than or equal to discount rate, then use
-    # Black-Scholes option price
-    american_prices = tf.where(
-        tf.math.logical_and(cost_of_carries >= discount_rates, is_call_options),
+    bjerksund_stensland_model = _call_2002 if modified_boundary else _call_1993
+    return tf.where(
+        tf.math.logical_and(cost_of_carries >= discount_rates,
+                            is_call_options),
         vanilla_prices.option_price(
             volatilities=volatilities,
             strikes=strikes,
@@ -510,17 +505,30 @@ def bjerksund_stensland(*,
             spots=spots,
             discount_rates=discount_rates,
             dividend_rates=dividend_rates,
-            is_call_options=is_call_options),
+            is_call_options=is_call_options,
+        ),
         # For put options, adjust inputs according to call-put transformation
         # function: P(S, X, T, r, b, sigma) = C(X, S, T, r - b, -b, sigma)
-        tf.where(is_call_options,
-                 bjerksund_stensland_model(
-                     spots, strikes, expiries, discount_rates,
-                     cost_of_carries, volatilities),
-                 bjerksund_stensland_model
-                 (strikes, spots, expiries, discount_rates - cost_of_carries,
-                  -cost_of_carries, volatilities)))
-    return american_prices
+        tf.where(
+            is_call_options,
+            bjerksund_stensland_model(
+                spots,
+                strikes,
+                expiries,
+                discount_rates,
+                cost_of_carries,
+                volatilities,
+            ),
+            bjerksund_stensland_model(
+                strikes,
+                spots,
+                expiries,
+                discount_rates - cost_of_carries,
+                -cost_of_carries,
+                volatilities,
+            ),
+        ),
+    )
 
 
 def _call_2002(s, k, t, r, b, sigma):

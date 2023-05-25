@@ -148,9 +148,7 @@ def options_price_from_samples(
     payoff = tf.where(is_call_options,
                       tf.math.maximum(payoff_bond_price - strikes, 0.0),
                       tf.math.maximum(strikes - payoff_bond_price, 0.0))
-    option_value = tf.math.reduce_mean(payoff_discount_factors * payoff, axis=0)
-
-    return option_value
+    return tf.math.reduce_mean(payoff_discount_factors * payoff, axis=0)
 
 
 def _prepare_indices(idx0, idx1, idx2, idx3):

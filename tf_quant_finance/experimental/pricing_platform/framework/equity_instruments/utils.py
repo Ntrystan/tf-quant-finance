@@ -98,12 +98,10 @@ def get_vol_surface(
   prepare_vols = tf.gather(volatilities, mask)
   prepare_expiries = dateslib.dates_from_ordinals(
       tf.gather(expiries, mask))
-  # All curves are assumed to have the same interpolation method
-  # TODO(b/168411153): Extend to the case with multiple curve configs.
-  vol_surface = volatility_surface.VolatilitySurface(
+  return volatility_surface.VolatilitySurface(
       valuation_date=market.date,
       expiries=prepare_expiries,
       strikes=prepare_strikes,
       volatilities=prepare_vols,
-      daycount_convention=vols.daycount_convention)
-  return vol_surface
+      daycount_convention=vols.daycount_convention,
+  )

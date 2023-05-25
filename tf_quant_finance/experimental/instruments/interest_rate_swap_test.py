@@ -43,9 +43,8 @@ class InterestRateSwapTest(tf.test.TestCase):
         ], dtype=np.float64),
         valuation_date=val_date,
         dtype=np.float64)
-    market = instruments.InterestRateMarket(
-        reference_curve=reference_curve, discount_curve=reference_curve)
-    return market
+    return instruments.InterestRateMarket(reference_curve=reference_curve,
+                                          discount_curve=reference_curve)
 
   def test_irs_correctness(self):
     dtype = np.float64

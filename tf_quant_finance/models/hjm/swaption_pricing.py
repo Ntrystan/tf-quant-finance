@@ -274,10 +274,9 @@ def price(
         is_payer_swaption, dtype=tf.bool, name='is_payer_swaption')
 
     if expiries.shape.rank < fixed_leg_payment_times.shape.rank - 1:
-      raise ValueError('Swaption expiries not specified for all swaptions '
-                       'in the batch. Expected rank {} but received {}.'.format(
-                           fixed_leg_payment_times.shape.rank - 1,
-                           expiries.shape.rank))
+      raise ValueError(
+          f'Swaption expiries not specified for all swaptions in the batch. Expected rank {fixed_leg_payment_times.shape.rank - 1} but received {expiries.shape.rank}.'
+      )
     # Add a dimension corresponding to multiple cashflows in a swap
     expiries = tf.expand_dims(expiries, axis=-1)
     # Expected shape: batch_shape + [m], where m is the number of fixed leg
@@ -307,7 +306,6 @@ def price(
       return _european_swaption_fd(
           instrument_batch_shape,
           model,
-          # Add a dimension to denote ONE exercise date
           tf.expand_dims(expiries, axis=-2),
           fixed_leg_payment_times,
           fixed_leg_daycount_fractions,
@@ -317,8 +315,9 @@ def price(
           time_step_finite_difference,
           num_time_steps_finite_difference,
           num_grid_points_finite_difference,
-          name + '_fd',
-          dtype)
+          f'{name}_fd',
+          dtype,
+      )
     elif valuation_method == vm.ValuationMethod.MONTE_CARLO:
       # Monte-Carlo pricing
       model = quasi_gaussian_hjm.QuasiGaussianHJM(
@@ -330,13 +329,27 @@ def price(
           dtype=dtype)
 
       return _european_swaption_mc(
-          model, expiries, fixed_leg_payment_times,
-          fixed_leg_daycount_fractions, fixed_leg_coupon, notional,
-          is_payer_swaption, times, time_step, num_time_steps, curve_times,
-          num_samples, random_type, skip, seed, dtype, name + '_mc')
+          model,
+          expiries,
+          fixed_leg_payment_times,
+          fixed_leg_daycount_fractions,
+          fixed_leg_coupon,
+          notional,
+          is_payer_swaption,
+          times,
+          time_step,
+          num_time_steps,
+          curve_times,
+          num_samples,
+          random_type,
+          skip,
+          seed,
+          dtype,
+          f'{name}_mc',
+      )
     else:
-      raise ValueError('Swaption Valuation using {} is not supported'.format(
-          str(valuation_method)))
+      raise ValueError(
+          f'Swaption Valuation using {str(valuation_method)} is not supported')
 
 
 def _european_swaption_mc(model, expiries,

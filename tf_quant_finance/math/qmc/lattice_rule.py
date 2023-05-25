@@ -178,20 +178,20 @@ def lattice_rule_sample(generating_vectors: types.IntTensor,
 
     control_deps = []
     if validate_args:
-      control_deps.append(
+      control_deps.extend((
           tf.debugging.assert_equal(
               tf.rank(generating_vectors),
               1,
-              message='generating_vectors must have rank 1'))
-      control_deps.append(
+              message='generating_vectors must have rank 1',
+          ),
           tf.debugging.assert_less_equal(
               dim,
               tf.size(generating_vectors, out_type=int_dtype),
-              message='dim must not exceed the size of generating_vectors'))
-      control_deps.append(
-          tf.debugging.assert_positive(
-              num_results, message='num_results must be positive'))
-
+              message='dim must not exceed the size of generating_vectors',
+          ),
+          tf.debugging.assert_positive(num_results,
+                                       message='num_results must be positive'),
+      ))
     with tf.control_dependencies(control_deps):
       # shape: (num_samples,)
       if sequence_indices is None:

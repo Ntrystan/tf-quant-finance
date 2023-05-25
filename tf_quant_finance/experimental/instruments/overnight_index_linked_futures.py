@@ -181,7 +181,7 @@ class OvernightIndexLinkedFutures:
 
     del model, valuation_date
 
-    name = name or (self._name + '_price')
+    name = name or f'{self._name}_price'
     with tf.name_scope(name):
       reference_curve = market.reference_curve
 

@@ -64,15 +64,15 @@ class LocalStochasticVolatilityTest(tf.test.TestCase, parameterized.TestCase):
     discount_factor = tf.math.exp(-r * time)
     paths = tf.boolean_mask(paths, tf.math.logical_not(tf.math.is_nan(paths)))
     option_value = tf.math.reduce_mean(tf.nn.relu(paths - strike))
-    iv = bs.implied_vol(
+    return bs.implied_vol(
         prices=discount_factor * option_value,
         strikes=strike,
         expiries=time,
         spots=spot,
         discount_factors=discount_factor,
         dtype=dtype,
-        validate_args=True)
-    return iv
+        validate_args=True,
+    )
 
   @parameterized.named_parameters(
       ('1d', 1, 0.0, [0.0], [1.0], [1.0], 0.1, 0.1, 0.0, 0.2, True),

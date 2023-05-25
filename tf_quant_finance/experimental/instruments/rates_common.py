@@ -206,5 +206,4 @@ def get_implied_volatility_data(market,
                                 currency=None):
   """Return the implied volatility data from the market data."""
   del valuation_date, volatility_type, currency
-  vol_data = market.volatility_curve
-  return vol_data
+  return market.volatility_curve

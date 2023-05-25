@@ -109,9 +109,12 @@ def tensor_repr(am_option_data: Dict[str, Any],
                 dtype: Optional[types.Dtype] = None):
   """Creates a tensor representation of an American option."""
   dtype = dtype or tf.float64
-  res = dict()
-  res["expiry_date"] = tf.convert_to_tensor(
-      am_option_data["expiry_date"], dtype=tf.int32, name="expiry_date")
+  res = {
+      "expiry_date":
+      tf.convert_to_tensor(am_option_data["expiry_date"],
+                           dtype=tf.int32,
+                           name="expiry_date")
+  }
   am_option_config = am_option_data["config"]
   res["config"] = None
   if am_option_config is not None:
@@ -125,15 +128,10 @@ def tensor_repr(am_option_data: Dict[str, Any],
     currency = [currency]
   discount_curve_type = []
   for cur in currency:
-    if res["config"] is not None:
-      if cur in res["config"]["discounting_curve"]:
-        discount_curve = res["config"]["discounting_curve"][cur]
-        discount_curve_type.append(discount_curve)
-      else:
-        risk_free = curve_types_lib.RiskFreeCurve(currency=cur)
-        discount_curve_type.append(risk_free)
+    if res["config"] is not None and cur in res["config"]["discounting_curve"]:
+      discount_curve = res["config"]["discounting_curve"][cur]
+      discount_curve_type.append(discount_curve)
     else:
-      # Default discounting is the risk free curve
       risk_free = curve_types_lib.RiskFreeCurve(currency=cur)
       discount_curve_type.append(risk_free)
   discount_curve_type, mask = cashflow_streams.process_curve_types(
@@ -162,12 +160,11 @@ def tensor_repr(am_option_data: Dict[str, Any],
 
 def config_to_dict(am_option_config: "AmericanOptionConfig") -> Dict[str, Any]:
   """Converts AmericanOptionConfig to a dictionary."""
-  config = {
+  return {
       "model": am_option_config.model,
       "discounting_curve": am_option_config.discounting_curve,
       "num_samples": am_option_config.num_samples,
       "num_calibration_samples": am_option_config.num_calibration_samples,
       "num_exercise_times": am_option_config.num_exercise_times,
-      "seed": tf.convert_to_tensor(am_option_config.seed, name="seed")
+      "seed": tf.convert_to_tensor(am_option_config.seed, name="seed"),
   }
-  return config

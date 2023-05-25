@@ -54,7 +54,7 @@ def main(argv):
   pricer = pricers.TffOptionPricer(batch_size=batch_size, num_assets=num_assets)
   context = zmq.Context()
   receiver = context.socket(zmq.PULL)
-  channel = 'ipc://' + path.join(IPC_PATH, IPC_NAME)
+  channel = f'ipc://{path.join(IPC_PATH, IPC_NAME)}'
   receiver.connect(channel)
   logging.info('Pricer ready and listening at %s', channel)
 
@@ -74,8 +74,8 @@ def main(argv):
                             portfolio['strike'], portfolio['call_put_flag'],
                             portfolio['expiry_date'])
       results = {'trade_id': portfolio['trade_id'], 'prices': prices}
-      output_path = path.join(RESULTS_BASE_PATH,
-                              'results_' + path.basename(inputs.portfolio_path))
+      output_path = path.join(
+          RESULTS_BASE_PATH, f'results_{path.basename(inputs.portfolio_path)}')
     logging.info('Computed prices in %f ms', compute_timer.elapsed_ms)
     with pricers.Timer() as write_timer:
       with tff.experimental.io.ArrayDictWriter(output_path) as writer:

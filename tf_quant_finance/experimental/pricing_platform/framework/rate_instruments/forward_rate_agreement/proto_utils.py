@@ -215,9 +215,10 @@ def from_protos_v2(
 def tensor_repr(fra_data, dtype=None):
   """Creates a tensor representation of the FRA."""
   dtype = dtype or tf.float64
-  res = dict()
-  res["fixing_date"] = tf.convert_to_tensor(
-      fra_data["fixing_date"], dtype=tf.int32)
+  res = {
+      "fixing_date": tf.convert_to_tensor(fra_data["fixing_date"],
+                                          dtype=tf.int32)
+  }
   res["fixed_rate"] = tf.convert_to_tensor(
       fra_data["fixed_rate"], dtype=dtype)
   config = fra_data["config"]
@@ -226,15 +227,10 @@ def tensor_repr(fra_data, dtype=None):
   currency_list = cashflow_streams.to_list(fra_data["currency"])
   discount_curve_type = []
   for currency in currency_list:
-    if config is not None:
-      if currency in config.discounting_curve:
-        discount_curve = config.discounting_curve[currency]
-        discount_curve_type.append(discount_curve)
-      else:
-        risk_free = curve_types_lib.RiskFreeCurve(currency=currency)
-        discount_curve_type.append(risk_free)
+    if config is not None and currency in config.discounting_curve:
+      discount_curve = config.discounting_curve[currency]
+      discount_curve_type.append(discount_curve)
     else:
-      # Default discounting is the risk free curve
       risk_free = curve_types_lib.RiskFreeCurve(currency=currency)
       discount_curve_type.append(risk_free)
   discount_curve_type, mask = cashflow_streams.process_curve_types(
@@ -248,10 +244,10 @@ def tensor_repr(fra_data, dtype=None):
       "type": fra_data["rate_term"][0],
       "frequency": reset_frequency}
   rate_index = cashflow_streams.to_list(fra_data["rate_index"])
-  rate_index_curves = []
-  for currency, r_ind in zip(currency_list, rate_index):
-    rate_index_curves.append(curve_types_lib.RateIndexCurve(
-        currency=currency, index=r_ind))
+  rate_index_curves = [
+      curve_types_lib.RateIndexCurve(currency=currency, index=r_ind)
+      for currency, r_ind in zip(currency_list, rate_index)
+  ]
   [
       rate_index_curves,
       reference_mask

@@ -316,7 +316,7 @@ class SabrModel(generic_ito_process.GenericItoProcess):
       whereas the second values in `Tensor` are the simulated volatility
       trajectories `V(t)`.
     """
-    name = name or self._name + '_sample_path'
+    name = name or f'{self._name}_sample_path'
     with tf.name_scope(name):
       initial_forward = tf.convert_to_tensor(
           initial_forward, self._dtype, name='initial_forward')
@@ -332,24 +332,29 @@ class SabrModel(generic_ito_process.GenericItoProcess):
 
       with tf.compat.v1.control_dependencies(self.control_dependencies):
         initial_forward += self._shift
-        if self._enable_unbiased_sampling and not (
-            _is_callable(self._beta) or _is_callable(self._volvol) or
-            _is_callable(self._rho) or self._beta == 1):
-          paths = self._sabr_sample_paths(initial_forward, initial_volatility,
-                                          times, time_step, num_samples,
-                                          random_type, seed,
-                                          precompute_normal_draws,
-                                          skip=skip)
-        else:
-          paths = super(SabrModel, self).sample_paths(
-              times,
-              num_samples, [initial_forward, initial_volatility],
-              random_type,
-              seed,
-              skip=skip,
-              time_step=time_step,
-              precompute_normal_draws=precompute_normal_draws)
-
+        paths = (self._sabr_sample_paths(
+            initial_forward,
+            initial_volatility,
+            times,
+            time_step,
+            num_samples,
+            random_type,
+            seed,
+            precompute_normal_draws,
+            skip=skip,
+        ) if self._enable_unbiased_sampling and not _is_callable(self._beta)
+                 and not _is_callable(self._volvol)
+                 and not _is_callable(self._rho) and self._beta != 1 else super(
+                     SabrModel, self).sample_paths(
+                         times,
+                         num_samples,
+                         [initial_forward, initial_volatility],
+                         random_type,
+                         seed,
+                         skip=skip,
+                         time_step=time_step,
+                         precompute_normal_draws=precompute_normal_draws,
+                     ))
         forwards = tf.expand_dims(paths[:, :, 0] - self._shift, axis=-1)
         volatilities = tf.expand_dims(paths[:, :, 1], axis=-1)
 

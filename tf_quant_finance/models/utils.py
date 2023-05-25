@@ -332,8 +332,7 @@ def cumsum_using_matvec(input_tensor):
   axis_length = tf.shape(input_tensor)[-1]
   ones = tf.ones([axis_length, axis_length], dtype=dtype)
   lower_triangular = tf.linalg.band_part(ones, -1, 0)
-  cumsum = tf.linalg.matvec(lower_triangular, input_tensor)
-  return cumsum
+  return tf.linalg.matvec(lower_triangular, input_tensor)
 
 
 def cumprod_using_matvec(input_tensor):

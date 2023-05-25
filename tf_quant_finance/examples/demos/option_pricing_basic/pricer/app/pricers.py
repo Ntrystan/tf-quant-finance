@@ -55,14 +55,14 @@ def _price(spot_mkt, vol_mkt, rate_mkt, underliers, strikes, call_put_flag,
   pricing_date = tff.datetime.dates_from_datetimes([datetime.date.today()])
   expiry_times = tff.datetime.daycount_actual_360(
       start_date=pricing_date, end_date=expiry_dates, dtype=np.float64)
-  prices = tff.black_scholes.option_price(
+  return tff.black_scholes.option_price(
       volatilities=vols,
       strikes=strikes,
       expiries=expiry_times,
       spots=spots,
       discount_rates=rates,
-      is_call_options=call_put_flag)
-  return prices
+      is_call_options=call_put_flag,
+  )
 
 
 class TffOptionPricer:
@@ -86,6 +86,12 @@ class TffOptionPricer:
   def price(self, spot_mkt, vol_mkt, rate_mkt, underliers, strikes,
             call_put_flag, expiry_ordinals):
     """Prices options."""
-    prices = self._pricer(spot_mkt, vol_mkt, rate_mkt, underliers, strikes,
-                          call_put_flag, expiry_ordinals)
-    return prices
+    return self._pricer(
+        spot_mkt,
+        vol_mkt,
+        rate_mkt,
+        underliers,
+        strikes,
+        call_put_flag,
+        expiry_ordinals,
+    )

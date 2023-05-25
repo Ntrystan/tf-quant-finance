@@ -216,7 +216,7 @@ class Swaption(instrument.Instrument):
     """
     model = (self._config.model or
              models.InterestRateModelType.HULL_WHITE_ONE_FACTOR)
-    name = name or (self._name + "_price")
+    name = name or f"{self._name}_price"
     with tf.name_scope(name):
       valuation_date = dateslib.convert_to_date_tensor(market.date)
       strike = self._swap.fixed_rate()

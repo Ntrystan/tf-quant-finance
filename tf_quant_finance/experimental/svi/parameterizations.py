@@ -222,5 +222,4 @@ def implied_volatility_from_raw_svi_parameters(
         name=name)
     dtype = dtype or total_variance.dtype
     expiries = tf.convert_to_tensor(expiries, dtype, name='expiries')
-    implied_volatilities = tf.math.sqrt(total_variance / expiries[:, None])
-    return implied_volatilities
+    return tf.math.sqrt(total_variance / expiries[:, None])

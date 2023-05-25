@@ -306,9 +306,8 @@ class MarketDataDict(pmd.ProcessedMarketData):
     implied_vols = tf.stack(implied_vols, axis=0)
     strikes = math.pad.pad_tensors(strikes)
     strikes = tf.stack(strikes, axis=0)
-    vol_surface = volatility_surface.VolatilitySurface(
-        self.date, dates, strikes, implied_vols)
-    return vol_surface
+    return volatility_surface.VolatilitySurface(self.date, dates, strikes,
+                                                implied_vols)
 
   def forward_curve(self, currency: str, asset: str):
     """The forward curve of the asset prices object."""

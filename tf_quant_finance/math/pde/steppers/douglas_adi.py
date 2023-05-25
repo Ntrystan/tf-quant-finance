@@ -361,8 +361,7 @@ def _trim_boundaries(tensor, from_dim, shifts=None):
     if isinstance(slice_end, int) and slice_end == 0:
       slice_end = None
     slices[i] = slice(slice_begin, slice_end)
-  res = tensor[slices]
-  return res
+  return tensor[slices]
 
 
 _all__ = ['douglas_adi_step', 'douglas_adi_scheme']

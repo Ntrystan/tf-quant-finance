@@ -275,14 +275,13 @@ def european_option_price(
 
     if is_call_options is None:
       return undiscounted_call_prices * discount_factors
-    else:
-      is_call_options = tf.convert_to_tensor(is_call_options, dtype=tf.bool,
-                                             name='is_call_options')
-      # Use call-put parity for Put
-      undiscounted_put_prices = undiscounted_call_prices - forwards + strikes
+    is_call_options = tf.convert_to_tensor(is_call_options, dtype=tf.bool,
+                                           name='is_call_options')
+    # Use call-put parity for Put
+    undiscounted_put_prices = undiscounted_call_prices - forwards + strikes
 
-      undiscount_prices = tf.where(
-          is_call_options,
-          undiscounted_call_prices,
-          undiscounted_put_prices)
-      return undiscount_prices * discount_factors
+    undiscount_prices = tf.where(
+        is_call_options,
+        undiscounted_call_prices,
+        undiscounted_put_prices)
+    return undiscount_prices * discount_factors

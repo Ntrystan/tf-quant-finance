@@ -1050,27 +1050,18 @@ def _append_first_and_last(first, inner, last, axis):
 
 
 def _append_first(first, rest, axis):
-  if first is None:
-    return rest
-  return tf.concat((first, rest), axis=axis)
+  return rest if first is None else tf.concat((first, rest), axis=axis)
 
 
 def _append_last(rest, last, axis):
-  if last is None:
-    return rest
-  return tf.concat((rest, last), axis=axis)
+  return rest if last is None else tf.concat((rest, last), axis=axis)
 
 
 def _get_grid_delta(coord_grid, dim):
   # Retrieves delta along given dimension, assuming the grid is uniform.
   delta = coord_grid[dim][..., 1] - coord_grid[dim][..., 0]
   n = len(coord_grid)
-  if delta.shape.rank == 0:
-    return delta
-  else:  # Grid has a batch shape
-    # Delta grid should broadcase with value grid
-    # Shape batch_shape + n *[1]
-    return delta[[...] +  n * [tf.newaxis]]
+  return delta if delta.shape.rank == 0 else delta[[...] +  n * [tf.newaxis]]
 
 
 def _prepare_pde_coeff(raw_coeff, value_grid):
@@ -1092,11 +1083,9 @@ def _prepare_boundary_conditions(boundary_tensor, value_grid, batch_rank, dim):
   # Broadcast to the shape of the boundary: it is the shape of value grid with
   # one dimension removed.
   dim_to_remove = batch_rank + dim
-  broadcast_shape = []
-  # Shape slicing+concatenation seems error-prone, so let's do it simply.
-  for i, size in enumerate(value_grid.shape):
-    if i != dim_to_remove:
-      broadcast_shape.append(size)
+  broadcast_shape = [
+      size for i, size in enumerate(value_grid.shape) if i != dim_to_remove
+  ]
   return tf.broadcast_to(boundary_tensor, broadcast_shape)
 
 
@@ -1195,8 +1184,7 @@ def _trim_boundaries(tensor, from_dim, shifts=None,
     if isinstance(slice_end, int) and slice_end == 0:
       slice_end = None
     slices[i] = slice(slice_begin, slice_end)
-  res = tensor[slices]
-  return res
+  return tensor[slices]
 
 
 def _remove_default_boundary(

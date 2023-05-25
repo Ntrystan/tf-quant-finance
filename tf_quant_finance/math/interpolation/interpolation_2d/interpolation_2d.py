@@ -128,7 +128,7 @@ class Interpolation2D:
       interpolated values of the function on for the coordinates
       `(x, y)`.
     """
-    name = name or self._name + "_interpolate"
+    name = name or f"{self._name}_interpolate"
     with tf.name_scope(name):
       x = tf.convert_to_tensor(
           x, dtype=self._dtype, name="x")

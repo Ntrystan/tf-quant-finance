@@ -60,7 +60,7 @@ def uniform_grid(minimums,
     defined or they are not identical to each other or they are not rank 1.
   """
   with tf.compat.v1.name_scope(name, 'uniform_grid',
-                               [minimums, maximums, sizes]):
+                                 [minimums, maximums, sizes]):
     minimums = tf.convert_to_tensor(minimums, dtype=dtype, name='minimums')
     maximums = tf.convert_to_tensor(maximums, dtype=dtype, name='maximums')
     sizes = tf.convert_to_tensor(sizes, name='sizes')
@@ -69,7 +69,7 @@ def uniform_grid(minimums,
       raise ValueError('The shapes of minimums, maximums and sizes '
                        'must be fully defined.')
 
-    if not (minimums.shape == maximums.shape and minimums.shape == sizes.shape):
+    if minimums.shape != maximums.shape or minimums.shape != sizes.shape:
       raise ValueError('The shapes of minimums, maximums and sizes must be '
                        'identical.')
 
@@ -84,11 +84,10 @@ def uniform_grid(minimums,
       ]
     with tf.compat.v1.control_dependencies(control_deps):
       dim = sizes.shape[0]
-      locations = [
+      return [
           tf.linspace(minimums[i], maximums[i], num=sizes[i])
           for i in range(dim)
       ]
-      return locations
 
 
 def log_uniform_grid(minimums,
@@ -153,7 +152,7 @@ def log_uniform_grid(minimums,
     defined or they are not identical to each other or they are not rank 1.
   """
   with tf.compat.v1.name_scope(name, 'log_uniform_grid',
-                               [minimums, maximums, sizes]):
+                                 [minimums, maximums, sizes]):
     minimums = tf.convert_to_tensor(minimums, dtype=dtype, name='minimums')
     maximums = tf.convert_to_tensor(maximums, dtype=dtype, name='maximums')
     sizes = tf.convert_to_tensor(sizes, name='sizes')
@@ -162,7 +161,7 @@ def log_uniform_grid(minimums,
       raise ValueError('The shapes of minimums, maximums and sizes '
                        'must be fully defined.')
 
-    if not (minimums.shape == maximums.shape and minimums.shape == sizes.shape):
+    if minimums.shape != maximums.shape or minimums.shape != sizes.shape:
       raise ValueError('The shapes of minimums, maximums and sizes must be '
                        'identical.')
 
@@ -184,11 +183,10 @@ def log_uniform_grid(minimums,
       log_maximums = tf.math.log(maximums)
       log_minimums = tf.math.log(minimums)
 
-      locations = [
+      return [
           tf.exp(tf.linspace(log_minimums[i], log_maximums[i], num=sizes[i]))
           for i in range(dim)
       ]
-      return locations
 
 
 def rectangular_grid(axis_locations,
@@ -227,12 +225,10 @@ def rectangular_grid(axis_locations,
   with tf.compat.v1.name_scope(name, 'rectangular_grid', [axis_locations]):
     if not axis_locations:
       raise ValueError('The axis locations parameter cannot be empty.')
-    locations = [
-        tf.convert_to_tensor(
-            location, dtype=dtype, name='location_axis_{}'.format(i))
+    return [
+        tf.convert_to_tensor(location, dtype=dtype, name=f'location_axis_{i}')
         for i, location in enumerate(axis_locations)
     ]
-    return locations
 
 
 def uniform_grid_with_extra_point(minimums,
@@ -305,7 +301,7 @@ def uniform_grid_with_extra_point(minimums,
     defined or they are not identical to each other or they are not rank 1.
   """
   with tf.compat.v1.name_scope(name, 'uniform_grid',
-                               [minimums, maximums, sizes]):
+                                 [minimums, maximums, sizes]):
     minimums = tf.convert_to_tensor(minimums, dtype=dtype, name='minimums')
     maximums = tf.convert_to_tensor(maximums, dtype=dtype, name='maximums')
     extra_grid_point = tf.convert_to_tensor(
@@ -329,11 +325,11 @@ def uniform_grid_with_extra_point(minimums,
     locations = []
     with tf.compat.v1.control_dependencies(control_deps):
       dim = sizes.shape[0]
-      for i in range(dim):
-        locations.append(
-            tf.expand_dims(minimums[..., i], -1) +
-            tf.expand_dims((maximums[..., i] - minimums[..., i]), -1) * tf
-            .linspace(tf.constant(0., dtype=minimums.dtype), 1.0, num=sizes[i]))
+      locations.extend(
+          tf.expand_dims(minimums[..., i], -1) +
+          tf.expand_dims((maximums[..., i] - minimums[..., i]), -1) * tf.
+          linspace(tf.constant(0.0, dtype=minimums.dtype), 1.0, num=sizes[i])
+          for i in range(dim))
       # Broadcast `locations` to the shape `[batch_shape, size]`
       for i, location in enumerate(locations):
         locations[i] = location + tf.zeros([batch_shape, sizes[i]], dtype=dtype)
@@ -417,7 +413,7 @@ def log_uniform_grid_with_extra_point(minimums,
     defined or they are not identical to each other or they are not rank 1.
   """
   with tf.compat.v1.name_scope(name, 'log_uniform_grid',
-                               [minimums, maximums, sizes]):
+                                 [minimums, maximums, sizes]):
     minimums = tf.convert_to_tensor(minimums, dtype=dtype, name='minimums')
     maximums = tf.convert_to_tensor(maximums, dtype=dtype, name='maximums')
     sizes = tf.convert_to_tensor(sizes, name='sizes')
@@ -447,12 +443,12 @@ def log_uniform_grid_with_extra_point(minimums,
       dim = sizes.shape[0]
       log_maximums = tf.math.log(maximums)
       log_minimums = tf.math.log(minimums)
-      for i in range(dim):
-        locations.append(
-            tf.expand_dims(log_minimums[..., i], -1) +
-            tf.expand_dims((log_maximums[..., i] - log_minimums[..., i]), -1) *
-            tf.linspace(
-                tf.constant(0., dtype=minimums.dtype), 1.0, num=sizes[i]))
+      locations.extend(
+          tf.expand_dims(log_minimums[..., i], -1) +
+          tf.expand_dims((log_maximums[..., i] - log_minimums[..., i]), -1) *
+          tf.linspace(
+              tf.constant(0.0, dtype=minimums.dtype), 1.0, num=sizes[i])
+          for i in range(dim))
       # Broadcast `locations` to the shape `[batch_shape, size]`
       for i, location in enumerate(locations):
         locations[i] = location + tf.zeros([batch_shape, sizes[i]], dtype=dtype)

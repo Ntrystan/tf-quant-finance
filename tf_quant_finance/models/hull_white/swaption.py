@@ -248,13 +248,21 @@ def swaption_price(
         expiries, tf.shape(fixed_leg_payment_times)[-1], axis=-1)
 
     if use_analytic_pricing:
-      return _analytic_valuation(expiries, float_leg_start_times,
-                                 float_leg_end_times, fixed_leg_payment_times,
-                                 fixed_leg_daycount_fractions,
-                                 fixed_leg_coupon, reference_rate_fn,
-                                 mean_reversion, volatility, notional,
-                                 is_payer_swaption, dtype,
-                                 name + '_analytic_valuation')
+      return _analytic_valuation(
+          expiries,
+          float_leg_start_times,
+          float_leg_end_times,
+          fixed_leg_payment_times,
+          fixed_leg_daycount_fractions,
+          fixed_leg_coupon,
+          reference_rate_fn,
+          mean_reversion,
+          volatility,
+          notional,
+          is_payer_swaption,
+          dtype,
+          f'{name}_analytic_valuation',
+      )
 
     if time_step is None:
       raise ValueError('`time_step` must be provided for simulation '
@@ -563,11 +571,7 @@ def bermudan_swaption_price(
     is_payer_swaption = tf.convert_to_tensor(
         is_payer_swaption, dtype=tf.bool, name='is_payer_swaption')
 
-    if lsm_basis is None:
-      basis_fn = lsm.make_polynomial_basis(2)
-    else:
-      basis_fn = lsm_basis
-
+    basis_fn = lsm.make_polynomial_basis(2) if lsm_basis is None else lsm_basis
     batch_shape = exercise_times.shape.as_list()[:-1]
     unique_exercise_times, exercise_time_index = tf.unique(
         tf.reshape(exercise_times, shape=[-1]))
@@ -592,19 +596,21 @@ def bermudan_swaption_price(
         dtype=dtype)
 
     if use_finite_difference:
-      return _bermudan_swaption_fd(batch_shape,
-                                   model,
-                                   exercise_times,
-                                   unique_exercise_times,
-                                   fixed_leg_payment_times,
-                                   fixed_leg_daycount_fractions,
-                                   fixed_leg_coupon,
-                                   notional,
-                                   is_payer_swaption,
-                                   time_step_finite_difference,
-                                   num_grid_points_finite_difference,
-                                   name + '_fd',
-                                   dtype)
+      return _bermudan_swaption_fd(
+          batch_shape,
+          model,
+          exercise_times,
+          unique_exercise_times,
+          fixed_leg_payment_times,
+          fixed_leg_daycount_fractions,
+          fixed_leg_coupon,
+          notional,
+          is_payer_swaption,
+          time_step_finite_difference,
+          num_grid_points_finite_difference,
+          f'{name}_fd',
+          dtype,
+      )
     # Monte-Carlo pricing
     if time_step is None:
       raise ValueError('`time_step` must be provided for LSM valuation.')
@@ -699,11 +705,7 @@ def bermudan_swaption_price(
       del rt
       result = tf.where(is_exercise_time[time_index] > 0,
                         tf.nn.relu(payoff_swap[time_index]), 0.0)
-      if batch_shape:
-        return result
-      else:
-        # Currently LSM requires payoff to return a Tensor of rank 2
-        return tf.expand_dims(result, axis=-1)
+      return result if batch_shape else tf.expand_dims(result, axis=-1)
 
     discount_factors_simulated = tf.gather(
         discount_factors_simulated, sim_time_index, axis=2)
@@ -716,11 +718,7 @@ def bermudan_swaption_price(
         dtype=dtype)
     # Shape [batch_size]
     option_value = notional * option_value
-    if batch_shape:
-      return option_value
-    else:
-      # Shape []
-      return tf.squeeze(option_value)
+    return option_value if batch_shape else tf.squeeze(option_value)
 
 
 def _jamshidian_decomposition(hw_model,
@@ -834,7 +832,7 @@ def _prepare_swaption_indices(tensor_shape):
   index_list = []
   for i in range(len(tensor_shape)):
     index = np.arange(0, tensor_shape[i], dtype=np.int64)
-    if i == 0 or i == len(tensor_shape) - 1:
+    if i in [0, len(tensor_shape) - 1]:
       index = tf.tile(index, [batch_size])
     else:
       index = np.tile(
@@ -902,7 +900,7 @@ def _map_payoff_to_sim_times(indices, payoff, num_samples):
   """
   indices = tf.expand_dims(indices, axis=0)
   indices = tf.repeat(indices, num_samples, axis=0)
-  index_list = list()
+  index_list = []
   tensor_shape = np.array(indices.shape.as_list())
   output_shape = indices.shape.as_list()[:-1] + [
       tf.math.reduce_max(indices) + 1
@@ -960,9 +958,13 @@ def _analytic_valuation(expiries, floating_leg_start_times,
         tf.expand_dims(-1.0 - coefficients[..., -1], axis=-1)], axis=-1)
     # Shape `batch_shape`
     breakeven_bond_option_strikes = _jamshidian_decomposition(
-        model, expiries,
-        fixed_leg_payment_times, jamshidian_coefficients, dtype,
-        name=name + '_jamshidian_decomposition')[..., 0]
+        model,
+        expiries,
+        fixed_leg_payment_times,
+        jamshidian_coefficients,
+        dtype,
+        name=f'{name}_jamshidian_decomposition',
+    )[..., 0]
     bond_option_prices = zcb.bond_option_price(
         strikes=breakeven_bond_option_strikes,
         expiries=expiries,
@@ -973,7 +975,8 @@ def _analytic_valuation(expiries, floating_leg_start_times,
         is_call_options=is_call_options,
         use_analytic_pricing=True,
         dtype=dtype,
-        name=name + '_bond_option')
+        name=f'{name}_bond_option',
+    )
 
     # Now compute P(T0, TN) + sum_i (c_i * tau_i * P(T0, Ti))
     # bond_option_prices.shape = batch_shape + [m], where `m`

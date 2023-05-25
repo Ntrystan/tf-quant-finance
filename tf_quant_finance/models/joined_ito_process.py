@@ -258,34 +258,34 @@ class JoinedItoProcess(generic_ito_process.GenericItoProcess):
     if time_step is None:
       raise ValueError("`time_step` has to be supplied for JoinedItoProcess "
                        "`sample_paths` method.")
-    name = name or self._name + "sample_paths"
+    name = name or f"{self._name}sample_paths"
     with tf.name_scope(name):
       if initial_state is None:
         initial_state = tf.zeros(self._dim, dtype=self.dtype(),
                                  name="initial_state")
+      elif isinstance(initial_state, (tuple, list)):
+        initial_state = [tf.convert_to_tensor(state, dtype=self.dtype(),
+                                              name="initial_state")
+                         for state in initial_state]
+        initial_state = tf.stack(initial_state)
       else:
-        if isinstance(initial_state, (tuple, list)):
-          initial_state = [tf.convert_to_tensor(state, dtype=self.dtype(),
-                                                name="initial_state")
-                           for state in initial_state]
-          initial_state = tf.stack(initial_state)
-        else:
-          initial_state = tf.convert_to_tensor(initial_state,
-                                               dtype=self.dtype(),
-                                               name="initial_state")
-      samples = euler_sampling.sample(self.dim(),
-                                      drift_fn=self.drift_fn(),
-                                      volatility_fn=self.volatility_fn(),
-                                      times=times,
-                                      time_step=time_step,
-                                      num_samples=num_samples,
-                                      initial_state=initial_state,
-                                      random_type=random_type,
-                                      seed=seed,
-                                      swap_memory=swap_memory,
-                                      skip=skip,
-                                      dtype=self.dtype())
-      return samples
+        initial_state = tf.convert_to_tensor(initial_state,
+                                             dtype=self.dtype(),
+                                             name="initial_state")
+      return euler_sampling.sample(
+          self.dim(),
+          drift_fn=self.drift_fn(),
+          volatility_fn=self.volatility_fn(),
+          times=times,
+          time_step=time_step,
+          num_samples=num_samples,
+          initial_state=initial_state,
+          random_type=random_type,
+          seed=seed,
+          swap_memory=swap_memory,
+          skip=skip,
+          dtype=self.dtype(),
+      )
 
 
 def _get_parameters(times, *params):

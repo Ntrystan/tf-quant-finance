@@ -81,11 +81,8 @@ def create_holiday_calendar(
   Returns:
     A HolidayCalendar instance.
   """
-  # Choose BoundedHolidayCalendar if possible, for better performance, otherwise
-  # choose UnboundedHolidayCalendar.
-  is_bounded = (_tensor_is_not_empty(holidays) or
-                (start_year is not None and end_year is not None))
-  if is_bounded:
+  if is_bounded := (_tensor_is_not_empty(holidays)
+                    or (start_year is not None and end_year is not None)):
     return bounded_holiday_calendar.BoundedHolidayCalendar(
         weekend_mask, holidays, start_year, end_year)
   return unbounded_holiday_calendar.UnboundedHolidayCalendar(

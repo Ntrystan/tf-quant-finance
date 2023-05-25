@@ -109,7 +109,7 @@ class SampleSobolSequenceTest(tf.test.TestCase):
           random.sobol.sample(dim, num_results, skip=skip, validate_args=True))
 
   def test_normal_integral_mean_and_var_correctly_estimated(self):
-    n = int(1000)
+    n = 1000
     # This test is almost identical to the similarly named test in
     # monte_carlo_test.py. The only difference is that we use the Sobol
     # samples instead of the random samples to evaluate the expectations.

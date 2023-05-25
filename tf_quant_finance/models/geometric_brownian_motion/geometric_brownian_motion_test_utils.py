@@ -34,9 +34,7 @@ def convert_to_ndarray(test_obj, a):
   # If a is tensor-like then convert it to ndarray
   if tf.is_tensor(a):
     a = test_obj.evaluate(a)
-  if not isinstance(a, np.ndarray):
-    return np.array(a)
-  return a
+  return np.array(a) if not isinstance(a, np.ndarray) else a
 
 
 def arrays_all_close(test_obj, a, b, atol, msg=None):
@@ -70,18 +68,16 @@ def arrays_all_close(test_obj, a, b, atol, msg=None):
   atol = convert_to_ndarray(test_obj, atol)
   # Check the shapes are the same.
   if a.shape != b.shape:
-    raise ValueError("Mismatched shapes a.shape() = {}".format(a.shape) +
-                     ", b.shape= {}".format(b.shape) +
-                     ", atol.shape = {}".format(atol.shape) +
-                     ". ({}).".format(msg))
+    raise ValueError(
+        (((f"Mismatched shapes a.shape() = {a.shape}" +
+           f", b.shape= {b.shape}") + f", atol.shape = {atol.shape}") +
+         f". ({msg})."))
   abs_diff = np.abs(a - b)
   if np.any(abs_diff >= atol):
-    raise ValueError("Expected and actual values differ by more than the " +
-                     "tolerance.\n a = {}".format(a) +
-                     "\n b = {}".format(b) +
-                     "\n abs_diff = {}".format(abs_diff) +
-                     "\n atol = {}".format(atol) +
-                     "\n When {}.".format(msg))
+    raise ValueError(((((
+        f"Expected and actual values differ by more than the tolerance.\n a = {a}"
+        + f"\n b = {b}") + f"\n abs_diff = {abs_diff}") + f"\n atol = {atol}")
+                      + f"\n When {msg}."))
   return
 
 

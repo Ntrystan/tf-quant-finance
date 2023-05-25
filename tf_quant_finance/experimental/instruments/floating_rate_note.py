@@ -168,7 +168,7 @@ class FloatingRateNote:
       based on the input market data.
     """
 
-    name = name or (self._name + '_price')
+    name = name or f'{self._name}_price'
     with tf.name_scope(name):
       discount_curve = market.discount_curve
       coupon_cf = self._cashflows.price(valuation_date, market, model)

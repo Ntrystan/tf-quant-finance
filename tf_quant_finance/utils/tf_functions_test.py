@@ -36,8 +36,8 @@ class TfFunctionsTest(tf.test.TestCase):
     key_lists, values = zip(*list(iterator))
     keys = ['_'.join(k) for k in key_lists]
     if expected_keys is not None and expected_values is not None:
-      result_dict = {k: v for k, v in zip(keys, values)}
-      expected_dict = {k: v for k, v in zip(expected_keys, expected_values)}
+      result_dict = dict(zip(keys, values))
+      expected_dict = dict(zip(expected_keys, expected_values))
       self.assertDictEqual(result_dict, expected_dict)
       return
 
@@ -55,9 +55,7 @@ class TfFunctionsTest(tf.test.TestCase):
         iterator, expected_keys=['a', 'b'], expected_values=[1, 2])
 
   def test_empty(self):
-    items = []
-    for item in tff.utils.iterate_nested({}):
-      items.append(item)
+    items = list(tff.utils.iterate_nested({}))
     self.assertEmpty(items)
 
   def test_array_values(self):

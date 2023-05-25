@@ -188,12 +188,12 @@ def _random_stateless_uniform(shape: types.IntTensor,
 
     control_deps = []
     if validate_args:
-      control_deps.append(
-          tf.debugging.assert_positive(shape, message='shape must be positive'))
-      control_deps.append(
-          tf.debugging.assert_positive(
-              num_digits, message='num_digits must be positive'))
-
+      control_deps.extend((
+          tf.debugging.assert_positive(shape,
+                                       message='shape must be positive'),
+          tf.debugging.assert_positive(num_digits,
+                                       message='num_digits must be positive'),
+      ))
     with tf.control_dependencies(control_deps):
       minval = tf.cast(utils.exp2(num_digits - 1), dtype=dtype)
       maxval = tf.cast(utils.exp2(num_digits), dtype=dtype)

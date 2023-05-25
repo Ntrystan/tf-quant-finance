@@ -741,11 +741,7 @@ def _get_time_steps_info(start_time, end_time, num_steps, time_step,
   if time_step is not None and not _is_callable(time_step):
     dt = time_step
     estimated_max_steps = tf.cast(tf.math.ceil(interval / dt), dtype=tf.int32)
-  if dt is not None:
-    raw_time_step_fn = lambda _: dt
-  else:
-    raw_time_step_fn = time_step
-
+  raw_time_step_fn = (lambda _: dt) if dt is not None else time_step
   def time_step_fn(t):
     # t is the current time.
     # t_next is the next time

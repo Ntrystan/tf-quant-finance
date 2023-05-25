@@ -33,33 +33,28 @@ from tf_quant_finance.experimental.pricing_platform.instrument_protos import int
 
 def fixed_leg_tensor_repr(leg, config, dtype):
   """Creates tensor representation for a fixed leg of a swap."""
-  res = {}
-  coupon_spec = {}
   currency_list = cashflow_streams.to_list(leg.currency)
   discount_curve_type = []
   for currency in currency_list:
-    if config is not None:
-      if currency in config.discounting_curve:
-        discount_curve = config.discounting_curve[currency]
-        discount_curve_type.append(discount_curve)
-      else:
-        risk_free = curve_types_lib.RiskFreeCurve(currency=currency)
-        discount_curve_type.append(risk_free)
+    if config is not None and currency in config.discounting_curve:
+      discount_curve = config.discounting_curve[currency]
+      discount_curve_type.append(discount_curve)
     else:
-      # Default discounting is the risk free curve
       risk_free = curve_types_lib.RiskFreeCurve(currency=currency)
       discount_curve_type.append(risk_free)
   discount_curve_type, mask = cashflow_streams.process_curve_types(
       discount_curve_type)
-  res["discount_curve_mask"] = tf.convert_to_tensor(mask, dtype=tf.int32)
+  res = {"discount_curve_mask": tf.convert_to_tensor(mask, dtype=tf.int32)}
   res["discount_curve_type"] = discount_curve_type
   coupon_frequency = tf.convert_to_tensor(
       leg.coupon_frequency[1], tf.int32)
-  coupon_spec["coupon_frequency"] = {
-      "type": leg.coupon_frequency[0],
-      "frequency": coupon_frequency}
-  coupon_spec["fixed_rate"] = tf.convert_to_tensor(
-      leg.fixed_rate, dtype=dtype)
+  coupon_spec = {
+      "coupon_frequency": {
+          "type": leg.coupon_frequency[0],
+          "frequency": coupon_frequency,
+      },
+      "fixed_rate": tf.convert_to_tensor(leg.fixed_rate, dtype=dtype),
+  }
   coupon_spec["notional_amount"] = tf.convert_to_tensor(
       leg.notional_amount, dtype=dtype)
   coupon_spec["settlement_days"] = tf.convert_to_tensor(
@@ -74,32 +69,28 @@ def fixed_leg_tensor_repr(leg, config, dtype):
 
 def floating_leg_tensor_repr(leg, config, dtype):
   """Creates tensor representation for a floating leg of a swap."""
-  res = {}
-  coupon_spec = {}
   currency_list = cashflow_streams.to_list(leg.currency)
   discount_curve_type = []
   for currency in currency_list:
-    if config is not None:
-      if currency in config.discounting_curve:
-        discount_curve = config.discounting_curve[currency]
-        discount_curve_type.append(discount_curve)
-      else:
-        risk_free = curve_types_lib.RiskFreeCurve(currency=currency)
-        discount_curve_type.append(risk_free)
+    if config is not None and currency in config.discounting_curve:
+      discount_curve = config.discounting_curve[currency]
+      discount_curve_type.append(discount_curve)
     else:
-      # Default discounting is the risk free curve
       risk_free = curve_types_lib.RiskFreeCurve(currency=currency)
       discount_curve_type.append(risk_free)
   discount_curve_type, mask = cashflow_streams.process_curve_types(
       discount_curve_type)
-  res["discount_curve_mask"] = tf.convert_to_tensor(mask, dtype=tf.int32)
+  res = {"discount_curve_mask": tf.convert_to_tensor(mask, dtype=tf.int32)}
   res["discount_curve_type"] = discount_curve_type
   # Get coupon frequency
   coupon_frequency = tf.convert_to_tensor(
       leg.coupon_frequency[1], tf.int32, name="floating_coupon_frequency")
-  coupon_spec["coupon_frequency"] = {
-      "type": leg.coupon_frequency[0],
-      "frequency": coupon_frequency}
+  coupon_spec = {
+      "coupon_frequency": {
+          "type": leg.coupon_frequency[0],
+          "frequency": coupon_frequency,
+      }
+  }
   # Get reset frequency
   reset_frequency = tf.convert_to_tensor(
       leg.reset_frequency[1], tf.int32)
@@ -135,9 +126,10 @@ def floating_leg_tensor_repr(leg, config, dtype):
 def tensor_repr(swap_data, dtype=None):
   """Creates a tensor representation of the swap."""
   dtype = dtype or tf.float64
-  res = dict()
-  res["start_date"] = tf.convert_to_tensor(swap_data["start_date"],
-                                           dtype=tf.int32)
+  res = {
+      "start_date": tf.convert_to_tensor(swap_data["start_date"],
+                                         dtype=tf.int32)
+  }
   res["maturity_date"] = tf.convert_to_tensor(swap_data["maturity_date"],
                                               dtype=tf.int32)
   res["config"] = swap_data["config"]
@@ -269,15 +261,15 @@ def update_leg(
                        "fixed or float type.")
     current_leg.notional_amount += leg.notional_amount
     current_leg.fixed_rate += leg.fixed_rate
-    current_leg.settlement_days += leg.settlement_days
   else:
     if not isinstance(leg, coupon_specs.FloatCouponSpecs):
       raise ValueError("Both `current_leg` and `leg` should beof the same "
                        "fixed or float type.")
     current_leg.notional_amount += leg.notional_amount
     update_rate_index(current_leg.floating_rate_type, leg.floating_rate_type)
-    current_leg.settlement_days += leg.settlement_days
     current_leg.spread += leg.spread
+
+  current_leg.settlement_days += leg.settlement_days
 
 
 def update_leg_v2(
@@ -289,28 +281,23 @@ def update_leg_v2(
     if not isinstance(leg, coupon_specs.FixedCouponSpecs):
       raise ValueError("Both `current_leg` and `leg` should beof the same "
                        "fixed or float type.")
-    current_leg.currency += leg.currency
-    current_leg.notional_amount += leg.notional_amount
     current_leg.fixed_rate += leg.fixed_rate
-    current_leg.settlement_days += leg.settlement_days
-    current_leg.coupon_frequency = (
-        current_leg.coupon_frequency[0],
-        current_leg.coupon_frequency[1] + leg.coupon_frequency[1])
   else:
     if not isinstance(leg, coupon_specs.FloatCouponSpecs):
       raise ValueError("Both `current_leg` and `leg` should beof the same "
                        "fixed or float type.")
-    current_leg.currency += leg.currency
-    current_leg.notional_amount += leg.notional_amount
     current_leg.floating_rate_type += leg.floating_rate_type
-    current_leg.settlement_days += leg.settlement_days
     current_leg.spread += leg.spread
-    current_leg.coupon_frequency = (
-        current_leg.coupon_frequency[0],
-        current_leg.coupon_frequency[1] + leg.coupon_frequency[1])
     current_leg.reset_frequency = (
         current_leg.reset_frequency[0],
         current_leg.reset_frequency[1] + leg.reset_frequency[1])
+
+  current_leg.coupon_frequency = (
+      current_leg.coupon_frequency[0],
+      current_leg.coupon_frequency[1] + leg.coupon_frequency[1])
+  current_leg.settlement_days += leg.settlement_days
+  current_leg.notional_amount += leg.notional_amount
+  current_leg.currency += leg.currency
 
 
 def update_rate_index(
@@ -525,15 +512,8 @@ def _get_legs_hash_key(
   receive_leg_key_1, receive_leg_key_2 = _get_keys(leg_2)
   key_1 = pay_leg_key_1 + pay_leg_key_2
   key_2 = receive_leg_key_1 + receive_leg_key_2
-  flip_legs = False
-  # If this is a vanilla swap, keep pay_leg fixed and receive_leg float
-  if (pay_leg_key_1[0] is None
-      and receive_leg_key_1[0] is not None):
-    flip_legs = True
-  if flip_legs:
-    return flip_legs, key_2 + key_1
-  else:
-    return flip_legs, key_1 + key_2
+  flip_legs = pay_leg_key_1[0] is None and receive_leg_key_1[0] is not None
+  return (flip_legs, key_2 + key_1) if flip_legs else (flip_legs, key_1 + key_2)
 
 
 def _fixed_leg_key_v2(leg: ir_swap.FixedLeg) -> List[Any]:
@@ -580,15 +560,8 @@ def _get_legs_hash_key_v2(
   receive_leg_key_1, receive_leg_key_2 = _get_keys_v2(leg_2)
   key_1 = pay_leg_key_1 + pay_leg_key_2
   key_2 = receive_leg_key_1 + receive_leg_key_2
-  flip_legs = False
-  # If this is a vanilla swap, keep pay_leg fixed and receive_leg float
-  if (pay_leg_key_1[0] is None
-      and receive_leg_key_1[0] is not None):
-    flip_legs = True
-  if flip_legs:
-    return flip_legs, key_2 + key_1
-  else:
-    return flip_legs, key_1 + key_2
+  flip_legs = pay_leg_key_1[0] is None and receive_leg_key_1[0] is not None
+  return (flip_legs, key_2 + key_1) if flip_legs else (flip_legs, key_1 + key_2)
 
 
 def _frequency_and_multiplier(freq_type):

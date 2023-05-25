@@ -81,9 +81,9 @@ class TensorWrapper(metaclass=abc.ABCMeta):
   def _validate_tensor_types(cls, tensor_wrappers, function_name):
     for tensor in tensor_wrappers:
       if not isinstance(tensor, cls):
-        raise ValueError("{}.{} cannot be applied to {}".format(
-            cls.__name__, function_name,
-            type(tensor).__name__))
+        raise ValueError(
+            f"{cls.__name__}.{function_name} cannot be applied to {type(tensor).__name__}"
+        )
 
   def expand_dims(self, axis):
     """See tf.expand_dims."""

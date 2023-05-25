@@ -169,10 +169,7 @@ def gradients(func_or_y, xs, output_gradients=None, use_gradient_tape=False,
         y = f(*xs)
       grad = tape.gradient(y, xs, output_gradients=output_gradients,
                            unconnected_gradients=unconnected_gradients)
-    if is_xs_list_like:
-      return grad
-    else:
-      return grad[0]
+    return grad if is_xs_list_like else grad[0]
 
 
 def value_and_gradient(f,
@@ -227,10 +224,7 @@ def value_and_gradient(f,
       y = f(*xs)
       grad = tf.gradients(ys=y, xs=xs, grad_ys=output_gradients,
                           unconnected_gradients=unconnected_gradients)
-    if is_xs_list_like:
-      return y, grad
-    else:
-      return y, grad[0]
+    return (y, grad) if is_xs_list_like else (y, grad[0])
 
 
 def make_val_and_grad_fn(value_fn):
@@ -266,15 +260,9 @@ def make_val_and_grad_fn(value_fn):
 
 def _prepare_func(func_or_y):
   """Creates a function out of the input callable or `Tensor`."""
-  if callable(func_or_y):
-    return func_or_y
-  else:
-    return lambda *args: func_or_y
+  return func_or_y if callable(func_or_y) else (lambda *args: func_or_y)
 
 
 def _prepare_args(xs):
   """Converts `xs` to a list if necessary."""
-  if isinstance(xs, (list, tuple)):
-    return xs, True
-  else:
-    return [xs], False
+  return (xs, True) if isinstance(xs, (list, tuple)) else ([xs], False)

@@ -229,7 +229,7 @@ class InterestRateSwap:
       contract based on the input market data.
     """
 
-    name = name or (self._name + '_price')
+    name = name or f'{self._name}_price'
     with tf.name_scope(name):
       valuation_date = dates.convert_to_date_tensor(valuation_date)
       pay_cf = self._pay_leg.price(valuation_date, market, model,
@@ -289,11 +289,7 @@ class InterestRateSwap:
     """Returns the annuity of each swap on the vauation date."""
     del valuation_date, model
 
-    if unit_notional:
-      notional = 1.
-    else:
-      notional = self._fixed_leg.notional
-
+    notional = 1. if unit_notional else self._fixed_leg.notional
     if self._fixed_leg is not None:
       discount_curve = market.discount_curve
       discount_factors = discount_curve.get_discount_factor(

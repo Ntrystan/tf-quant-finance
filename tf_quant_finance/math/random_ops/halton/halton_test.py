@@ -71,7 +71,7 @@ class HaltonSequenceTest(tf.test.TestCase):
     self.assertEqual(self.evaluate(sample_float64).dtype, np.float64)
 
   def test_normal_integral_mean_and_var_correctly_estimated(self):
-    n = int(1000)
+    n = 1000
     # This test is almost identical to the similarly named test in
     # monte_carlo_test.py. The only difference is that we use the Halton
     # samples instead of the random samples to evaluate the expectations.
@@ -235,7 +235,7 @@ class HaltonSequenceTest(tf.test.TestCase):
     sample2 = (
         random.halton.sample(dim, sequence_indices=sequence_indices, seed=seed)
         for sequence_indices in batch_indices)
-    result_set1 = set(tuple(row) for row in self.evaluate(sample1))
+    result_set1 = {tuple(row) for row in self.evaluate(sample1)}
     result_set2 = set()
     for batch, _ in sample2:
       result_set2.update(tuple(row) for row in self.evaluate(batch))

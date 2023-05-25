@@ -177,12 +177,13 @@ def non_uniform_errors(f, num, ndim, label=None):
 
 def _build_errors_df(name_errors, label):
   """Helper to build errors DataFrame."""
-  series = []
   percentiles = np.linspace(0, 100, 21)
   index = percentiles / 100
-  for name, errors in name_errors:
-    series.append(pd.Series(
-        np.nanpercentile(errors, q=percentiles), index=index, name=name))
+  series = [
+      pd.Series(np.nanpercentile(errors, q=percentiles),
+                index=index,
+                name=name) for name, errors in name_errors
+  ]
   df = pd.concat(series, axis=1)
   df.columns.name = 'derivative'
   df.index.name = 'quantile'

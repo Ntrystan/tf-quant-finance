@@ -70,5 +70,4 @@ def gauss_legendre(func: Callable[[types.FloatTensor], types.FloatTensor],
     roots = tf.constant(roots, dtype=dtype)
     grid = ((upper - lower) * roots + upper + lower) / 2
     weights = tf.constant(coefficients[num_points], dtype=dtype)
-    result = tf.reduce_sum(func(grid) * (upper - lower) * weights / 2, axis=-1)
-    return result
+    return tf.reduce_sum(func(grid) * (upper - lower) * weights / 2, axis=-1)

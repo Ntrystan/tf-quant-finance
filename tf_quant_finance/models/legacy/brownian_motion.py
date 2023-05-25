@@ -305,17 +305,15 @@ class BrownianMotion(ito_process.ItoProcess):
           name=name,
           **kwargs)
 
-    default_name = self._name + '_sample_path'
+    default_name = f'{self._name}_sample_path'
     with tf.compat.v1.name_scope(
-        name, default_name=default_name, values=[times, initial_state]):
+          name, default_name=default_name, values=[times, initial_state]):
       end_times = tf.convert_to_tensor(times, dtype=self.dtype())
       start_times = tf.concat(
           [tf.zeros([1], dtype=end_times.dtype), end_times[:-1]], axis=0)
       paths = self._exact_sampling(end_times, start_times, num_samples,
                                    initial_state, random_type, seed)
-      if initial_state is not None:
-        return paths + initial_state
-      return paths
+      return paths + initial_state if initial_state is not None else paths
 
   def _exact_sampling(self, end_times, start_times, num_samples, initial_state,
                       random_type, seed):
@@ -415,14 +413,10 @@ def _prefer_static_shape(tensor):
   """Returns the static shape if fully specified else the dynamic shape."""
   tensor = tf.convert_to_tensor(tensor)
   static_shape = tensor.shape
-  if static_shape.is_fully_defined():
-    return static_shape
-  return tf.shape(tensor)
+  return static_shape if static_shape.is_fully_defined() else tf.shape(tensor)
 
 
 def _prefer_static_rank(tensor):
   """Returns the static rank if fully specified else the dynamic rank."""
   tensor = tf.convert_to_tensor(tensor)
-  if tensor.shape.rank is None:
-    return tf.rank(tensor)
-  return tensor.shape.rank
+  return tf.rank(tensor) if tensor.shape.rank is None else tensor.shape.rank

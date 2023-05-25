@@ -261,14 +261,14 @@ def _construct_space_discretized_eqn_params(
     superdiag_first_order = -backward_deltas / (sum_deltas * forward_deltas)
     subdiag_first_order = forward_deltas / (sum_deltas * backward_deltas)
     diag_first_order = -superdiag_first_order - subdiag_first_order
-    if first_order_coeff is not None:
-      superdiag_first_order *= first_order_coeff[..., 1:-1]
-      subdiag_first_order *= first_order_coeff[..., 1:-1]
-      diag_first_order *= first_order_coeff[..., 1:-1]
-    if inner_first_order_coeff is not None:
-      superdiag_first_order *= inner_first_order_coeff[..., 2:]
-      subdiag_first_order *= inner_first_order_coeff[..., :-2]
-      diag_first_order *= inner_first_order_coeff[..., 1:-1]
+  if first_order_coeff is not None:
+    superdiag_first_order *= first_order_coeff[..., 1:-1]
+    subdiag_first_order *= first_order_coeff[..., 1:-1]
+    diag_first_order *= first_order_coeff[..., 1:-1]
+  if inner_first_order_coeff is not None:
+    superdiag_first_order *= inner_first_order_coeff[..., 2:]
+    subdiag_first_order *= inner_first_order_coeff[..., :-2]
+    diag_first_order *= inner_first_order_coeff[..., 1:-1]
 
   # Discretize second-order term.
   if second_order_coeff is None and inner_second_order_coeff is None:
@@ -280,14 +280,14 @@ def _construct_space_discretized_eqn_params(
     superdiag_second_order = -2 / (sum_deltas * forward_deltas)
     subdiag_second_order = -2 / (sum_deltas * backward_deltas)
     diag_second_order = -superdiag_second_order - subdiag_second_order
-    if second_order_coeff is not None:
-      superdiag_second_order *= second_order_coeff[..., 1:-1]
-      subdiag_second_order *= second_order_coeff[..., 1:-1]
-      diag_second_order *= second_order_coeff[..., 1:-1]
-    if inner_second_order_coeff is not None:
-      superdiag_second_order *= inner_second_order_coeff[..., 2:]
-      subdiag_second_order *= inner_second_order_coeff[..., :-2]
-      diag_second_order *= inner_second_order_coeff[..., 1:-1]
+  if second_order_coeff is not None:
+    superdiag_second_order *= second_order_coeff[..., 1:-1]
+    subdiag_second_order *= second_order_coeff[..., 1:-1]
+    diag_second_order *= second_order_coeff[..., 1:-1]
+  if inner_second_order_coeff is not None:
+    superdiag_second_order *= inner_second_order_coeff[..., 2:]
+    subdiag_second_order *= inner_second_order_coeff[..., :-2]
+    diag_second_order *= inner_second_order_coeff[..., 1:-1]
 
   superdiag = superdiag_first_order + superdiag_second_order
   subdiag = subdiag_first_order + subdiag_second_order

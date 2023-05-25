@@ -87,10 +87,7 @@ class IoTest(parameterized.TestCase, tf.test.TestCase):
         extracted = extracted.astype("U")
       np.testing.assert_array_equal(value, extracted)
 
-    remaining = []
-    for record in reader:
-      remaining.append(record)
-
+    remaining = list(reader)
     self.assertLen(remaining, 1)
     self.assertEqual(barriers_data.keys(), remaining[0].keys())
 

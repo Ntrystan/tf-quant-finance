@@ -48,17 +48,17 @@ class CMSSwapTest(tf.test.TestCase, parameterized.TestCase):
         coupon_basis=0.,
         coupon_multiplier=1.,
         daycount_convention=instruments.DayCountConvention.ACTUAL_365)
-    cms_spec = instruments.CMSCouponSpecs(
+    return instruments.CMSCouponSpecs(
         coupon_frequency=p3m,
         tenor=p1y,
         float_leg=flt_spec,
         fixed_leg=fix_spec,
-        notional=1.,
-        coupon_basis=0.,
-        coupon_multiplier=1.,
+        notional=1.0,
+        coupon_basis=0.0,
+        coupon_multiplier=1.0,
         businessday_rule=None,
-        daycount_convention=instruments.DayCountConvention.ACTUAL_365)
-    return cms_spec
+        daycount_convention=instruments.DayCountConvention.ACTUAL_365,
+    )
 
   @parameterized.named_parameters(
       ('DoublePrecision', np.float64),

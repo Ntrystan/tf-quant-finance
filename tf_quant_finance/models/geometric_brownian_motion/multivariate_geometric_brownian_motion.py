@@ -202,7 +202,7 @@ class MultivariateGeometricBrownianMotion(ito_process.ItoProcess):
     Raises:
       ValueError: If `normal_draws` is supplied and `dim` is mismatched.
     """
-    name = name or (self._name + "_sample_path")
+    name = name or f"{self._name}_sample_path"
     with tf.name_scope(name):
       times = tf.convert_to_tensor(times, self._dtype, name="times")
       if normal_draws is not None:
@@ -278,8 +278,7 @@ class MultivariateGeometricBrownianMotion(ito_process.ItoProcess):
     cumsum = tf.linalg.matvec(lower_triangular,
                               tf.transpose(log_increments))
     cumsum = tf.transpose(cumsum, [1, 2, 0])
-    samples = initial_state * tf.math.exp(cumsum)
-    return samples
+    return initial_state * tf.math.exp(cumsum)
 
   def fd_solver_backward(self,
                          start_time,

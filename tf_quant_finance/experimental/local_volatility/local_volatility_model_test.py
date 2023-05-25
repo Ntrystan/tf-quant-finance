@@ -387,15 +387,15 @@ def _get_implied_vol(time, strike, paths, spot, discount_factor_fn, dtype):
   # ITM option value can't fall below intrinsic value.
   option_value = tf.maximum(option_value, spot - strike)
 
-  iv = implied_vol(
+  return implied_vol(
       prices=discount_factor * option_value,
       strikes=strike,
       expiries=time,
       spots=spot,
       discount_factors=discount_factor,
       dtype=dtype,
-      validate_args=False)
-  return iv
+      validate_args=False,
+  )
 
 if __name__ == '__main__':
   tf.test.main()

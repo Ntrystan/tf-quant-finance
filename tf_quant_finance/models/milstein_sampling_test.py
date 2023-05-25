@@ -70,10 +70,7 @@ class MilsteinSamplingTest(tf.test.TestCase, parameterized.TestCase):
 
     times = np.array([0.1, 0.2, 0.3])
     num_samples = 5000
-    if watch_params:
-      watch_params = []
-    else:
-      watch_params = None
+    watch_params = [] if watch_params else None
     if use_time_step:
       time_step = 0.02
       num_time_steps = None
